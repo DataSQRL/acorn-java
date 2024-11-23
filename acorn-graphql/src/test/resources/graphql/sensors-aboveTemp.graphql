@@ -8,3 +8,12 @@ query HighTemps(
         temperature
     }
 }
+# high temperature readings
+query HighTemps2(
+    $temp: Float!
+) {
+    ReadingsAboveTemp(temp: $temp) {
+        sensorid
+        temperature
+    }
+}

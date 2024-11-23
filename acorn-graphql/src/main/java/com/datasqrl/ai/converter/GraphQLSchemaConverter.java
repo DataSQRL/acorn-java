@@ -16,6 +16,7 @@ import graphql.language.ListType;
 import graphql.language.NonNullType;
 import graphql.language.OperationDefinition;
 import graphql.language.OperationDefinition.Operation;
+import graphql.language.SourceLocation;
 import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.language.VariableDefinition;
@@ -45,6 +46,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,23 +103,65 @@ public class GraphQLSchemaConverter {
     return functions;
   }
 
-  public APIFunction convertOperation(String operationDefinition) {
+  public List<APIFunction> convertOperations(String operationDefinition) {
     Parser parser = new Parser();
     Document document = parser.parseDocument(operationDefinition);
     ErrorHandling.checkArgument(!document.getDefinitions().isEmpty(), "Operation definition contains no definitions");
-    ErrorHandling.checkArgument(document.getDefinitions().size()==1, "Only support 1 operation per definition, but found %s",
-        document.getDefinitions().size());
 
-    Definition definition = document.getDefinitions().get(0);
-    ErrorHandling.checkArgument(definition instanceof OperationDefinition, "Expected definition to be an operation, but got: %s", operationDefinition);
-    return convertOperationDefinition(((OperationDefinition) definition), operationDefinition);
+    List<APIFunction> functions = new ArrayList<>();
+    Iterator<Definition> defIter = document.getDefinitions().iterator();
+    Definition definition = defIter.next();
+    do {
+      ErrorHandling.checkArgument(definition instanceof OperationDefinition, "Expected definition to be an operation, but got: %s", operationDefinition);
+      FunctionDefinition fctDef = convertOperationDefinition(((OperationDefinition) definition));
+
+      SourceLocation startLocation = definition.getSourceLocation();
+      SourceLocation endLocation = new SourceLocation(Integer.MAX_VALUE, Integer.MAX_VALUE);
+      definition = null;
+      if (defIter.hasNext()) {
+        definition = defIter.next();
+        endLocation = definition.getSourceLocation();
+      }
+      //Get string between source and end location
+      String queryString = extractOperation(operationDefinition, startLocation.getLine(),
+          startLocation.getColumn(), endLocation.getLine(), endLocation.getColumn());
+      APIQuery query = new GraphQLQuery(queryString);
+      functions.add(functionFactory.create(fctDef, query));
+    } while (definition !=null);
+    return functions;
   }
 
-  public static String comments2String(List<Comment> comments) {
+  private static String extractOperation(String text, int startLine, int startColumn, int endLine, int endColumn) {
+    String[] lines = text.split("\n");
+    StringBuilder result = new StringBuilder();
+    endLine = Math.min(endLine, lines.length);
+    for (int i = startLine - 1; i <= endLine - 1; i++) {
+      String line = lines[i];
+      String subLine;
+      if (i == startLine - 1 && i == endLine - 1) {
+        subLine = line.substring(startColumn - 1, Math.min(endColumn - 1, line.length()));
+      } else if (i == startLine - 1) {
+        subLine = line.substring(startColumn - 1);
+      } else if (i == endLine - 1) {
+        subLine = (line.substring(0, Math.min(endColumn - 1, line.length())));
+      } else {
+        subLine = line;
+      }
+      int index = subLine.indexOf('#');
+      subLine = (index != -1) ? subLine.substring(0, index) : subLine;
+      if (!subLine.isBlank()) {
+        result.append(subLine);
+        result.append("\n");
+      }
+    }
+
+    return result.toString();
+  }
+  private static String comments2String(List<Comment> comments) {
     return comments.stream().map(Comment::getContent).collect(Collectors.joining(" "));
   }
 
-  public APIFunction convertOperationDefinition(OperationDefinition node, String originalDefinition) {
+  public FunctionDefinition convertOperationDefinition(OperationDefinition node) {
     Operation op = node.getOperation();
     ErrorHandling.checkArgument(op == Operation.QUERY || op==Operation.MUTATION, "Do not support subscriptions: %s", node.getName());
     String fctComment = comments2String(node.getComments());
@@ -143,9 +187,7 @@ public class GraphQLSchemaConverter {
       if (required) params.getRequired().add(argName);
       params.getProperties().put(argName, argDef);
     }
-    APIQuery query = new GraphQLQuery(originalDefinition);
-    APIFunction apiFunction = functionFactory.create(funcDef, query);
-    return apiFunction;
+    return funcDef;
   }
 
   private Argument convert(Type type) {

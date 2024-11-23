@@ -45,8 +45,9 @@ public class GraphQLSchemaConverterTest {
     List<APIFunction> functions = converter.convertSchema();
     assertEquals(5, functions.size());
     System.out.println(convertToJsonDefault(functions));
-    APIFunction query = converter.convertOperation(TestUtil.getResourcesFileAsString("graphql/sensors-aboveTemp.graphql"));
-    assertEquals("HighTemps", query.getFunction().getName());
+    List<APIFunction> queries = converter.convertOperations(TestUtil.getResourcesFileAsString("graphql/sensors-aboveTemp.graphql"));
+    assertEquals(2, queries.size());
+    assertEquals("HighTemps", queries.get(0).getFunction().getName());
   }
 
   public List<APIFunction> getFunctionsFromPath(String path) {
