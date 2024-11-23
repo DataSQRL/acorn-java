@@ -12,12 +12,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>1.4.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-jsonSchema</artifactId>
       <version>${jackson.version}</version>

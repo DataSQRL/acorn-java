@@ -8,11 +8,8 @@ import lombok.NoArgsConstructor;
 /**
  * Defines the API query for a function
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class APIQuery {
+public interface APIQuery {
 
-  private String query;
+  String query();
 
 }

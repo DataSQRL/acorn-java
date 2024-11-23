@@ -4,7 +4,7 @@ import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.util.ErrorHandling;
-import com.datasqrl.ai.util.FunctionUtil;
+import com.datasqrl.ai.tool.FunctionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;

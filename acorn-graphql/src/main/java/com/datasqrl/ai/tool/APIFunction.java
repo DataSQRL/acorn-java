@@ -3,23 +3,13 @@ package com.datasqrl.ai.tool;
 import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.tool.FunctionDefinition.Parameters;
-import com.datasqrl.ai.tool.FunctionValidation.ErrorType;
-import com.datasqrl.ai.util.FunctionUtil;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.Value;
 
 @Value
@@ -36,12 +26,11 @@ public class APIFunction {
     this.contextKeys = contextKeys;
     this.apiQuery = apiQuery;
     this.apiExecutor = apiExecutor;
-    try {
-      apiExecutor.validate(apiQuery);
-    } catch (IllegalArgumentException e) {
+    ValidationResult result = apiExecutor.validate(apiQuery);
+    if (!result.isValid()) {
       throw new IllegalArgumentException(
           "Function [" + function.getName() + "] invalid for API [" + apiExecutor
-              + "]", e);
+              + "]: " + result.errorMessage());
     }
   }
 
@@ -68,8 +57,8 @@ public class APIFunction {
     return field -> !contextFilter.contains(field.toLowerCase());
   }
 
-  public FunctionValidation validate(JsonNode arguments) {
-    return FunctionUtil.validateFunctionCall(getModelFunction(), arguments);
+  public ValidationResult validate(JsonNode arguments) {
+    return apiExecutor.validate(getModelFunction(), arguments);
   }
 
   /**

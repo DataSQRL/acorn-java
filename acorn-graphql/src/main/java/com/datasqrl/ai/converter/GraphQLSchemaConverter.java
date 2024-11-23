@@ -3,11 +3,23 @@ package com.datasqrl.ai.converter;
 import static graphql.Scalars.GraphQLString;
 
 import com.datasqrl.ai.api.APIQuery;
+import com.datasqrl.ai.api.GraphQLQuery;
 import com.datasqrl.ai.tool.APIFunction;
 import com.datasqrl.ai.tool.FunctionDefinition;
 import com.datasqrl.ai.tool.FunctionDefinition.Argument;
 import com.datasqrl.ai.tool.FunctionDefinition.Parameters;
 import com.datasqrl.ai.util.ErrorHandling;
+import graphql.language.Comment;
+import graphql.language.Definition;
+import graphql.language.Document;
+import graphql.language.ListType;
+import graphql.language.NonNullType;
+import graphql.language.OperationDefinition;
+import graphql.language.OperationDefinition.Operation;
+import graphql.language.Type;
+import graphql.language.TypeName;
+import graphql.language.VariableDefinition;
+import graphql.parser.Parser;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
@@ -21,6 +33,7 @@ import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
@@ -52,19 +65,29 @@ public class GraphQLSchemaConverter {
 
   Configuration configuration;
   APIFunctionFactory functionFactory;
+  GraphQLSchema schema;
 
-  SchemaPrinter schemaPrinter = new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
+  public GraphQLSchemaConverter(String schemaString, Configuration configuration,
+      APIFunctionFactory functionFactory) {
+    this.configuration = configuration;
+    this.functionFactory = functionFactory;
+    this.schema = getSchema(schemaString);
+  }
 
-  public List<APIFunction> convert(String schemaString) {
+  private static GraphQLSchema getSchema(String schemaString) {
     TypeDefinitionRegistry typeRegistry = new SchemaParser().parse(schemaString);
     RuntimeWiring.Builder runtimeWiringBuilder = RuntimeWiring.newRuntimeWiring();
     getExtendedScalars().forEach(runtimeWiringBuilder::scalar);
-    GraphQLSchema graphQLSchema = new SchemaGenerator().makeExecutableSchema(typeRegistry, runtimeWiringBuilder.build());
+    return new SchemaGenerator().makeExecutableSchema(typeRegistry, runtimeWiringBuilder.build());
+  }
 
+  SchemaPrinter schemaPrinter = new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
+
+  public List<APIFunction> convertSchema() {
     List<APIFunction> functions = new ArrayList<>();
 
-    GraphQLObjectType queryType = graphQLSchema.getQueryType();
-    GraphQLObjectType mutationType = graphQLSchema.getMutationType();
+    GraphQLObjectType queryType = schema.getQueryType();
+    GraphQLObjectType mutationType = schema.getMutationType();
     Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> Pair.of("query", fieldDef))
             ,mutationType.getFieldDefinitions().stream().map(fieldDef -> Pair.of("mutation", fieldDef)))
         .flatMap(input -> {
@@ -76,6 +99,73 @@ public class GraphQLSchemaConverter {
       }
     }).forEach(functions::add);
     return functions;
+  }
+
+  public APIFunction convertOperation(String operationDefinition) {
+    Parser parser = new Parser();
+    Document document = parser.parseDocument(operationDefinition);
+    ErrorHandling.checkArgument(!document.getDefinitions().isEmpty(), "Operation definition contains no definitions");
+    ErrorHandling.checkArgument(document.getDefinitions().size()==1, "Only support 1 operation per definition, but found %s",
+        document.getDefinitions().size());
+
+    Definition definition = document.getDefinitions().get(0);
+    ErrorHandling.checkArgument(definition instanceof OperationDefinition, "Expected definition to be an operation, but got: %s", operationDefinition);
+    return convertOperationDefinition(((OperationDefinition) definition), operationDefinition);
+  }
+
+  public static String comments2String(List<Comment> comments) {
+    return comments.stream().map(Comment::getContent).collect(Collectors.joining(" "));
+  }
+
+  public APIFunction convertOperationDefinition(OperationDefinition node, String originalDefinition) {
+    Operation op = node.getOperation();
+    ErrorHandling.checkArgument(op == Operation.QUERY || op==Operation.MUTATION, "Do not support subscriptions: %s", node.getName());
+    String fctComment = comments2String(node.getComments());
+    String fctName = node.getName();
+
+    FunctionDefinition funcDef = initializeFunctionDefinition(fctName, fctComment);
+    Parameters params = funcDef.getParameters();
+
+    // Process variable definitions
+    List<VariableDefinition> variableDefinitions = node.getVariableDefinitions();
+    for (VariableDefinition varDef : variableDefinitions) {
+      String description = comments2String(varDef.getComments());
+      String argName = varDef.getName();
+      Type type = varDef.getType();
+
+      boolean required = false;
+      if (type instanceof NonNullType nonNullType) {
+        required = true;
+        type = nonNullType.getType();
+      }
+      Argument argDef = convert(type);
+      argDef.setDescription(description);
+      if (required) params.getRequired().add(argName);
+      params.getProperties().put(argName, argDef);
+    }
+    APIQuery query = new GraphQLQuery(originalDefinition);
+    APIFunction apiFunction = functionFactory.create(funcDef, query);
+    return apiFunction;
+  }
+
+  private Argument convert(Type type) {
+    if (type instanceof NonNullType) {
+      return convert(((NonNullType) type).getType());
+    }
+    Argument argument = new Argument();
+    if (type instanceof ListType) {
+      argument.setType("array");
+      argument.setItems(convert(((ListType) type).getType()));
+    } else if (type instanceof TypeName) {
+      String typeName = ((TypeName) type).getName();
+      GraphQLType graphQLType = schema.getType(typeName);
+      if (graphQLType instanceof GraphQLInputType graphQLInputType) {
+        return GraphQLSchemaConverter.this.convert(graphQLInputType);
+      } else {
+        throw new UnsupportedOperationException("Unexpected type [" + typeName + "] with class: " + graphQLType);
+      }
+    } else throw new UnsupportedOperationException("Unexpected type:  " + type);
+    return argument;
   }
 
   public static List<GraphQLScalarType> getExtendedScalars() {
@@ -99,15 +189,21 @@ public class GraphQLSchemaConverter {
 
   private record Context(String prefix, int numArgs) {}
 
-  public APIFunction convert(String prefix, GraphQLFieldDefinition fieldDef) {
+  private static FunctionDefinition initializeFunctionDefinition(String name, String description) {
     FunctionDefinition funcDef = new FunctionDefinition();
     Parameters params = new Parameters();
     params.setType("object");
     params.setProperties(new HashMap<>());
     params.setRequired(new ArrayList<>());
-    funcDef.setDescription(fieldDef.getDescription());
-    funcDef.setName(fieldDef.getName());
+    funcDef.setName(name);
+    funcDef.setDescription(description);
     funcDef.setParameters(params);
+    return funcDef;
+  }
+
+  public APIFunction convert(String prefix, GraphQLFieldDefinition fieldDef) {
+    FunctionDefinition funcDef = initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
+    Parameters params = funcDef.getParameters();
 
     StringBuilder queryHeader = new StringBuilder(prefix).append(" ").append(fieldDef.getName()).append("(");
     StringBuilder queryBody = new StringBuilder();
@@ -115,8 +211,7 @@ public class GraphQLSchemaConverter {
     visit(fieldDef, queryBody, queryHeader, params, new Context("", 0));
 
     queryHeader.append(") {\n").append(queryBody).append("\n}");
-    APIQuery apiQuery = new APIQuery();
-    apiQuery.setQuery(queryHeader.toString());
+    APIQuery apiQuery = new GraphQLQuery(queryHeader.toString());
     return functionFactory.create(funcDef, apiQuery);
   }
 
