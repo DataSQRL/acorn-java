@@ -10,6 +10,9 @@
     <module>acorn-core</module>
     <module>acorn-graphql</module>
     <module>acorn-openai</module>
+    <module>acorn-bedrock</module>
+    <module>acorn-groq</module>
+    <module>acorn-vertex</module>
     <module>acorn-spring</module>
   </modules>
 
