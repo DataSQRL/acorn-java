@@ -1,0 +1,116 @@
+[ {
+  "name" : "SensorReading",
+  "description" : "Returns the sensor temperature readings for each second by most recent for a given sensor id",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The number of readings (one per second) to return"
+      },
+      "sensorid" : {
+        "type" : "integer",
+        "description" : "The id of the sensor"
+      }
+    },
+    "required" : [ "sensorid" ]
+  }
+}, {
+  "name" : "ReadingsAboveTemp",
+  "description" : "Returns all sensor temperature readings above the given temperature",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "temp" : {
+        "type" : "number"
+      },
+      "limit" : {
+        "type" : "integer"
+      }
+    },
+    "required" : [ "temp" ]
+  }
+}, {
+  "name" : "SensorMaxTempLastMinute",
+  "description" : "Returns the maximum temperature recorded by each sensor in the last minute",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The number sensors to return max temperature for"
+      },
+      "sensorid" : {
+        "type" : "integer",
+        "description" : "The id of the sensor. If left empty, returns max temperature for all sensors."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "SensorMaxTemp",
+  "description" : "Returns the maximum temperature recorded by each sensor",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The number sensors to return max temperature for"
+      },
+      "sensorid" : {
+        "type" : "integer",
+        "description" : "The id of the sensor. If left empty, returns max temperature for all sensors."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "AddReading",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "temperature" : {
+        "type" : "number"
+      },
+      "sensorid" : {
+        "type" : "integer"
+      }
+    },
+    "required" : [ "sensorid", "temperature" ]
+  }
+}, {
+  "name" : "HighTemps",
+  "description" : " Returns all readings with a temperature higher than the provided value",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "temperature" : {
+        "type" : "number",
+        "description" : " The temperature"
+      }
+    },
+    "required" : [ "temperature" ]
+  }
+}, {
+  "name" : "HighTemps2",
+  "description" : " high temperature readings",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "temp" : {
+        "type" : "number",
+        "description" : ""
+      }
+    },
+    "required" : [ "temp" ]
+  }
+} ]

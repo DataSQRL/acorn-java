@@ -48,7 +48,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,19 +65,19 @@ import lombok.extern.slf4j.Slf4j;
 public class GraphQLSchemaConverter {
 
   APIFunctionFactory functionFactory;
-  BiPredicate<Operation, String> includeOperation;
+  GraphQLSchemaConverterConfig config;
   GraphQLSchema schema;
 
   public GraphQLSchemaConverter(String schemaString,
       APIFunctionFactory functionFactory) {
-    this(schemaString, (x,y) -> true, functionFactory);
+    this(schemaString, GraphQLSchemaConverterConfig.DEFAULT, functionFactory);
   }
 
   public GraphQLSchemaConverter(String schemaString,
-      BiPredicate<Operation, String> includeOperation,
+      GraphQLSchemaConverterConfig config,
       APIFunctionFactory functionFactory) {
     this.functionFactory = functionFactory;
-    this.includeOperation = includeOperation;
+    this.config = config;
     this.schema = getSchema(schemaString);
   }
 
@@ -191,9 +190,9 @@ public class GraphQLSchemaConverter {
             ,mutationType.getFieldDefinitions().stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
         .flatMap(input -> {
           try {
-            if (includeOperation.test(input.op(), input.fieldDefinition().getName())) {
+            if (config.getOperationFilter().test(input.op(), input.fieldDefinition().getName())) {
               return Stream.of(convert(input.op(), input.fieldDefinition()));
-            }
+            } // else filter out
             return Stream.of();
           } catch (Exception e) {
             log.error("Error converting query: {}", input.fieldDefinition().getName(), e);

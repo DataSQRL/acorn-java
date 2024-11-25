@@ -1,0 +1,112 @@
+[ {
+  "name" : "SpendingByWeek",
+  "description" : " Retrieve weekly spending data for a specified customer.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : " The number of results to skip before starting to collect the result set (default: 0)."
+      },
+      "customerid" : {
+        "type" : "integer",
+        "description" : "customerid: The unique identifier for the customer."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : " The maximum number of results to return (default: 10)."
+      }
+    },
+    "required" : [ "customerid" ]
+  }
+}, {
+  "name" : "Products",
+  "description" : " Retrieve product information with optional filtering by product ID.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : " The number of results to skip before starting to collect the result set (default: 0)."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : " The maximum number of results to return (default: 10)."
+      },
+      "id" : {
+        "type" : "integer",
+        "description" : " The unique identifier for the product (optional)."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "Orders",
+  "description" : " Retrieve order information for a specified customer.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : " The number of results to skip before starting to collect the result set (default: 0)."
+      },
+      "customerid" : {
+        "type" : "integer",
+        "description" : " The unique identifier for the customer."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : " The maximum number of results to return (default: 10)."
+      },
+      "items_limit" : {
+        "type" : "integer"
+      }
+    },
+    "required" : [ "customerid" ]
+  }
+}, {
+  "name" : "OrdersByTimeRange",
+  "description" : "Retrieves orders for a given customer within the specified time range",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "customerid" : {
+        "type" : "integer",
+        "description" : "The unique identifier for the customer"
+      },
+      "fromTime" : {
+        "type" : "string",
+        "description" : "Returns orders where the order timestamp is larger than this RFC-3339 compliant fromTime timestamp"
+      },
+      "items_limit" : {
+        "type" : "integer"
+      },
+      "toTime" : {
+        "type" : "string",
+        "description" : "Returns orders where the order timestamp is smaller than this RFC-3339 compliant toTime timestamp"
+      }
+    },
+    "required" : [ "customerid", "fromTime", "toTime" ]
+  }
+}, {
+  "name" : "OrderAgain",
+  "description" : " Suggest products for a customer to order again based on their previous orders.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : " The number of results to skip before starting to collect the result set (default: 0)."
+      },
+      "customerid" : {
+        "type" : "integer",
+        "description" : " The unique identifier for the customer."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : " The maximum number of results to return (default: 10)."
+      }
+    },
+    "required" : [ "customerid" ]
+  }
+} ]

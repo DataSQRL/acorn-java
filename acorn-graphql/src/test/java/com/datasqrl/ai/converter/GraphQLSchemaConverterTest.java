@@ -1,5 +1,6 @@
 package com.datasqrl.ai.converter;
 
+import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.datasqrl.ai.TestUtil;
@@ -10,6 +11,7 @@ import com.datasqrl.ai.tool.FunctionUtil;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
@@ -19,23 +21,33 @@ import org.junit.jupiter.api.Test;
 public class GraphQLSchemaConverterTest {
 
   public static APIQueryExecutor apiExecutor = MockAPIExecutor.of("none");
+  public static StandardAPIFunctionFactory fctFactory = new StandardAPIFunctionFactory(apiExecutor, Set.of());
 
   @Test
   public void testNutshop() {
-    List<APIFunction> functions = getFunctionsFromPath("graphql/nutshop-schema.graphqls");
-    assertEquals(7, functions.size());
+    GraphQLSchemaConverter converter = new GraphQLSchemaConverter(
+        TestUtil.getResourcesFileAsString("graphql/nutshop-schema.graphqls"),
+        GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("internal")).build(),
+        fctFactory);
+    List<APIFunction> functions = converter.convertSchema();
+    assertEquals(5, functions.size());
+    snapshot(functions, "nutshop");
   }
 
   @Test
   public void testCreditCard() {
     List<APIFunction> functions = getFunctionsFromPath("graphql/creditcard-rewards.graphqls");
     assertEquals(8, functions.size());
+    snapshot(functions, "creditcard-rewards");
+
   }
 
   @Test
   public void testLawEnforcement() {
-    List<APIFunction> functions = getFunctionsFromPath("graphql/baseball_card.graphqls");
+    List<APIFunction> functions = getFunctionsFromPath("graphql/law_enforcement.graphqls");
     assertEquals(7, functions.size());
+    snapshot(functions, "law_enforcement");
+
   }
 
   @Test
@@ -43,10 +55,11 @@ public class GraphQLSchemaConverterTest {
     GraphQLSchemaConverter converter = getConverter(TestUtil.getResourcesFileAsString("graphql/sensors.graphqls"));
     List<APIFunction> functions = converter.convertSchema();
     assertEquals(5, functions.size());
-    System.out.println(convertToJsonDefault(functions));
     List<APIFunction> queries = converter.convertOperations(TestUtil.getResourcesFileAsString("graphql/sensors-aboveTemp.graphql"));
     assertEquals(2, queries.size());
     assertEquals("HighTemps", queries.get(0).getFunction().getName());
+    functions.addAll(queries);
+    snapshot(functions, "sensors");
   }
 
   public List<APIFunction> getFunctionsFromPath(String path) {
@@ -58,7 +71,6 @@ public class GraphQLSchemaConverterTest {
   }
 
   public GraphQLSchemaConverter getConverter(String schemaString) {
-    StandardAPIFunctionFactory fctFactory = new StandardAPIFunctionFactory(apiExecutor, Set.of());
     return new GraphQLSchemaConverter(schemaString, fctFactory);
   }
 
@@ -73,6 +85,10 @@ public class GraphQLSchemaConverterTest {
   @SneakyThrows
   public static String convertToJsonDefault(List<APIFunction> functions) {
     return FunctionUtil.toJsonString(functions.stream().map(APIFunction::getFunction).toList());
+  }
+
+  public static void snapshot(List<APIFunction> functions, String testName) {
+    TestUtil.snapshotTest(convertToJsonDefault(functions), Path.of("src","test","resources", "snapshot", testName + ".json"));
   }
 
 

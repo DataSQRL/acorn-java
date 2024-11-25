@@ -1,0 +1,186 @@
+[ {
+  "name" : "BoloDetails",
+  "description" : "Fetches Bolo details with specified vehicle characteristics.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : "The number of results to skip before starting to return results. Defaults to 0."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The maximum number of results to return. Defaults to 10."
+      },
+      "model" : {
+        "type" : "string",
+        "description" : "The model of the vehicle."
+      },
+      "make" : {
+        "type" : "string",
+        "description" : "The make of the vehicle (e.g., Ford, Toyota)."
+      }
+    },
+    "required" : [ "make" ]
+  }
+}, {
+  "name" : "Driver",
+  "description" : "Retrieves driver information using their license number.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "vehicles_tracking_limit" : {
+        "type" : "integer"
+      },
+      "offset" : {
+        "type" : "integer",
+        "description" : "The number of results to skip before starting to return results. Defaults to 0."
+      },
+      "bolos_limit" : {
+        "type" : "integer"
+      },
+      "bolos_offset" : {
+        "type" : "integer"
+      },
+      "vehicles_limit" : {
+        "type" : "integer"
+      },
+      "license_number" : {
+        "type" : "string",
+        "description" : "The license number of the driver."
+      },
+      "vehicles_bolos_limit" : {
+        "type" : "integer"
+      },
+      "vehicles_bolos_offset" : {
+        "type" : "integer"
+      },
+      "warrants_limit" : {
+        "type" : "integer"
+      },
+      "vehicles_tracking_offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The maximum number of results to return. Defaults to 10."
+      },
+      "vehicles_offset" : {
+        "type" : "integer"
+      },
+      "warrants_offset" : {
+        "type" : "integer"
+      }
+    },
+    "required" : [ "license_number" ]
+  }
+}, {
+  "name" : "Vehicle",
+  "description" : "Retrieves vehicle details using the registration number.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : "The number of results to skip before starting to return results. Defaults to 0."
+      },
+      "registration_number" : {
+        "type" : "string",
+        "description" : "The registration number of the vehicle, i.e. the license plate number."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The maximum number of results to return. Defaults to 10."
+      },
+      "tracking_limit" : {
+        "type" : "integer"
+      },
+      "bolos_limit" : {
+        "type" : "integer"
+      },
+      "tracking_offset" : {
+        "type" : "integer"
+      },
+      "bolos_offset" : {
+        "type" : "integer"
+      }
+    },
+    "required" : [ "registration_number" ]
+  }
+}, {
+  "name" : "WarrantsByCrime",
+  "description" : "Fetches statistics on warrants filtered by the type of crime.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer"
+      },
+      "crime" : {
+        "type" : "string",
+        "description" : "The type of crime."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "WarrantsByState",
+  "description" : "Fetches statistics on warrants issued by state filtered by their status.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer"
+      },
+      "limit" : {
+        "type" : "integer"
+      },
+      "status" : {
+        "type" : "string",
+        "description" : "The status of the warrant (one of: active, urgent, closed, suspended)."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "BolosByWeekState",
+  "description" : "Fetches Bolo (be on the lookout) statistics by week filtered by state. It returns the data ordered\nby week starting from the most recent and going backwards from there.",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "offset" : {
+        "type" : "integer",
+        "description" : "The number of results to skip before starting to return results. Defaults to 0."
+      },
+      "limit" : {
+        "type" : "integer",
+        "description" : "The maximum number of results to return. Defaults to 100. Set to the number of past weeks to return\nmultiplied by the number of states."
+      },
+      "state" : {
+        "type" : "string",
+        "description" : "The state for which Bolos are to be fetched abbreviated to two uppercase letters (e.g. WA, CA)."
+      }
+    },
+    "required" : [ ]
+  }
+}, {
+  "name" : "Tracking",
+  "parameters" : {
+    "type" : "object",
+    "properties" : {
+      "latitude" : {
+        "type" : "number"
+      },
+      "plate" : {
+        "type" : "string"
+      },
+      "longitude" : {
+        "type" : "number"
+      }
+    },
+    "required" : [ "plate", "latitude", "longitude" ]
+  }
+} ]
