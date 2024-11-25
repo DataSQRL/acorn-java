@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
-import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 

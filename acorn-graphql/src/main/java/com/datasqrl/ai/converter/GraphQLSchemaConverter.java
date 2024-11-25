@@ -49,14 +49,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
+
 
 /**
  * Converts a given GraphQL Schema to a tools configuration for the function backend.
@@ -179,22 +178,25 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
+  private static record OperationField (Operation op, GraphQLFieldDefinition fieldDefinition) {
+
+  }
 
   public List<APIFunction> convertSchema() {
     List<APIFunction> functions = new ArrayList<>();
 
     GraphQLObjectType queryType = schema.getQueryType();
     GraphQLObjectType mutationType = schema.getMutationType();
-    Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> Pair.of(Operation.QUERY, fieldDef))
-            ,mutationType.getFieldDefinitions().stream().map(fieldDef -> Pair.of(Operation.MUTATION, fieldDef)))
+    Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> new OperationField(Operation.QUERY, fieldDef))
+            ,mutationType.getFieldDefinitions().stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
         .flatMap(input -> {
           try {
-            if (includeOperation.test(input.getKey(), input.getValue().getName())) {
-              return Stream.of(convert(input.getKey(), input.getValue()));
+            if (includeOperation.test(input.op(), input.fieldDefinition().getName())) {
+              return Stream.of(convert(input.op(), input.fieldDefinition()));
             }
             return Stream.of();
           } catch (Exception e) {
-            log.error("Error converting query: {}", input.getValue(), e);
+            log.error("Error converting query: {}", input.fieldDefinition().getName(), e);
             return Stream.of();
           }
         }).forEach(functions::add);

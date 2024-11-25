@@ -1,9 +1,10 @@
 package com.datasqrl.ai;
 
 import com.datasqrl.ai.util.ErrorHandling;
-import com.google.common.io.Resources;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import lombok.SneakyThrows;
 
 public class TestUtil {
@@ -16,7 +17,8 @@ public class TestUtil {
 
   @SneakyThrows
   public static String getResourcesFileAsString(String path) {
-    return Resources.toString(getResourceFile(path), StandardCharsets.UTF_8);
+    Path uriPath = Path.of(getResourceFile(path).toURI());
+    return Files.readString(uriPath, StandardCharsets.UTF_8);
   }
 
 }
