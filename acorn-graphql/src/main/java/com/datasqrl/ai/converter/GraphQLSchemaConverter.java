@@ -48,13 +48,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -65,14 +66,20 @@ import org.apache.commons.lang3.tuple.Pair;
 @Slf4j
 public class GraphQLSchemaConverter {
 
-  Configuration configuration;
   APIFunctionFactory functionFactory;
+  BiPredicate<Operation, String> includeOperation;
   GraphQLSchema schema;
 
-  public GraphQLSchemaConverter(String schemaString, Configuration configuration,
+  public GraphQLSchemaConverter(String schemaString,
       APIFunctionFactory functionFactory) {
-    this.configuration = configuration;
+    this(schemaString, (x,y) -> true, functionFactory);
+  }
+
+  public GraphQLSchemaConverter(String schemaString,
+      BiPredicate<Operation, String> includeOperation,
+      APIFunctionFactory functionFactory) {
     this.functionFactory = functionFactory;
+    this.includeOperation = includeOperation;
     this.schema = getSchema(schemaString);
   }
 
@@ -84,24 +91,6 @@ public class GraphQLSchemaConverter {
   }
 
   SchemaPrinter schemaPrinter = new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
-
-  public List<APIFunction> convertSchema() {
-    List<APIFunction> functions = new ArrayList<>();
-
-    GraphQLObjectType queryType = schema.getQueryType();
-    GraphQLObjectType mutationType = schema.getMutationType();
-    Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> Pair.of("query", fieldDef))
-            ,mutationType.getFieldDefinitions().stream().map(fieldDef -> Pair.of("mutation", fieldDef)))
-        .flatMap(input -> {
-      try {
-        return Stream.of(convert(input.getKey(), input.getValue()));
-      } catch (Exception e) {
-        log.error("Error converting query: {}", input.getValue(), e);
-        return Stream.of();
-      }
-    }).forEach(functions::add);
-    return functions;
-  }
 
   public List<APIFunction> convertOperations(String operationDefinition) {
     Parser parser = new Parser();
@@ -190,6 +179,28 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
+
+  public List<APIFunction> convertSchema() {
+    List<APIFunction> functions = new ArrayList<>();
+
+    GraphQLObjectType queryType = schema.getQueryType();
+    GraphQLObjectType mutationType = schema.getMutationType();
+    Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> Pair.of(Operation.QUERY, fieldDef))
+            ,mutationType.getFieldDefinitions().stream().map(fieldDef -> Pair.of(Operation.MUTATION, fieldDef)))
+        .flatMap(input -> {
+          try {
+            if (includeOperation.test(input.getKey(), input.getValue().getName())) {
+              return Stream.of(convert(input.getKey(), input.getValue()));
+            }
+            return Stream.of();
+          } catch (Exception e) {
+            log.error("Error converting query: {}", input.getValue(), e);
+            return Stream.of();
+          }
+        }).forEach(functions::add);
+    return functions;
+  }
+
   private Argument convert(Type type) {
     if (type instanceof NonNullType) {
       return convert(((NonNullType) type).getType());
@@ -243,11 +254,12 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
-  public APIFunction convert(String prefix, GraphQLFieldDefinition fieldDef) {
+  public APIFunction convert(Operation operationType, GraphQLFieldDefinition fieldDef) {
     FunctionDefinition funcDef = initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
     Parameters params = funcDef.getParameters();
 
-    StringBuilder queryHeader = new StringBuilder(prefix).append(" ").append(fieldDef.getName()).append("(");
+    StringBuilder queryHeader = new StringBuilder(operationType.name().toLowerCase()).append(" ")
+        .append(fieldDef.getName()).append("(");
     StringBuilder queryBody = new StringBuilder();
 
     visit(fieldDef, queryBody, queryHeader, params, new Context("", 0));

@@ -60,7 +60,7 @@ public class GraphQLSchemaConverterTest {
 
   public GraphQLSchemaConverter getConverter(String schemaString) {
     StandardAPIFunctionFactory fctFactory = new StandardAPIFunctionFactory(apiExecutor, Set.of());
-    return new GraphQLSchemaConverter(schemaString, new PropertiesConfiguration(), fctFactory);
+    return new GraphQLSchemaConverter(schemaString, fctFactory);
   }
 
   @Test
