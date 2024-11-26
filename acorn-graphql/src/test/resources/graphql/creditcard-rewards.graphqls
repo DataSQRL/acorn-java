@@ -58,17 +58,6 @@ type Query {
         customerid: Int!
     ): [TotalPotentialReward!]
 
-    """Retrieves User Chat Messages"""
-    InternalGetChatMessages(
-        customerid: Int!,
-        limit: Int = 10,
-        offset: Int = 0
-    ): [CustomerChatMessage!]
-}
-
-type Subscription {
-    """Returns the rewards for a given customer immediately"""
-    CustomerRewards(customerid: Int!): CustomerRewards
 }
 
 type CustomerRewards {
@@ -116,31 +105,4 @@ type TotalPotentialReward {
     cardType: String!
     total_reward: Float!
     since_time: DateTime!
-}
-
-type CustomerChatMessage {
-    role: String!
-    content: String!
-    name: String
-    functionCall: String
-    customerid: Int!
-    timestamp: String!
-    uuid: String!
-}
-
-type Mutation {
-    """Adds a customer chat message"""
-    InternalSaveChatMessage(message: ChatMessageInput!): CreatedChatMessage
-}
-
-input ChatMessageInput {
-    role: String!
-    content: String!
-    name: String
-    functionCall: String
-    customerid: Int
-}
-
-type CreatedChatMessage {
-    event_time: String!
 }

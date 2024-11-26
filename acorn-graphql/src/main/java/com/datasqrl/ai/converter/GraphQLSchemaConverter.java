@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -183,10 +184,12 @@ public class GraphQLSchemaConverter {
   public List<APIFunction> convertSchema() {
     List<APIFunction> functions = new ArrayList<>();
 
-    GraphQLObjectType queryType = schema.getQueryType();
-    GraphQLObjectType mutationType = schema.getMutationType();
-    Stream.concat(queryType.getFieldDefinitions().stream().map(fieldDef -> new OperationField(Operation.QUERY, fieldDef))
-            ,mutationType.getFieldDefinitions().stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
+    List<GraphQLFieldDefinition> queries = Optional.ofNullable(schema.getQueryType())
+        .map(GraphQLObjectType::getFieldDefinitions).orElse(List.of());
+    List<GraphQLFieldDefinition> mutations = Optional.ofNullable(schema.getMutationType())
+        .map(GraphQLObjectType::getFieldDefinitions).orElse(List.of());
+    Stream.concat(queries.stream().map(fieldDef -> new OperationField(Operation.QUERY, fieldDef))
+            ,mutations.stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
         .flatMap(input -> {
           try {
             if (config.getOperationFilter().test(input.op(), input.fieldDefinition().getName())) {

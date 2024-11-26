@@ -44,7 +44,7 @@ public class GraphQLSchemaConverterTest {
   @Test
   public void testCreditCard() {
     List<APIFunction> functions = getFunctionsFromPath("graphql/creditcard-rewards.graphqls");
-    assertEquals(8, functions.size());
+    assertEquals(6, functions.size());
     snapshot(functions, "creditcard-rewards");
 
   }

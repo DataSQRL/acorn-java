@@ -14,6 +14,7 @@
     <module>acorn-groq</module>
     <module>acorn-vertex</module>
     <module>acorn-spring</module>
+    <module>acorn-cloud</module>
   </modules>
 
   <description>Acorn Parent POM</description>
