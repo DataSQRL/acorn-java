@@ -11,7 +11,7 @@ import lombok.NonNull;
 
 public class FunctionUtil {
 
-  public static String toJsonString(List<FunctionDefinition> tools) throws IOException {
+  public static String toJsonString(List<APIFunction> tools) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.valueToTree(tools));

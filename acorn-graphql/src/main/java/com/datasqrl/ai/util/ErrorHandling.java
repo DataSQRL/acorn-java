@@ -12,9 +12,5 @@ public class ErrorHandling {
     checkArgument(condition, "Unexpected arguments in method invocation");
   }
 
-  public static void checkNotNullOrEmpty(String s, String message, Object... args) {
-    ErrorHandling.checkArgument( s!=null && !s.isBlank(), message, args);
-  }
-
 
 }

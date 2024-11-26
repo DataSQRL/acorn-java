@@ -16,6 +16,9 @@ public class GraphQLSchemaConverterConfig {
   @Builder.Default
   BiPredicate<Operation, String> operationFilter = (op, name) -> true;
 
+  @Builder.Default
+  int maxDepth = 3;
+
   public static BiPredicate<Operation, String> ignorePrefix(String prefix) {
     final String prefixLower = prefix.trim().toLowerCase();
     return (op, name) -> !name.trim().toLowerCase().startsWith(prefixLower);

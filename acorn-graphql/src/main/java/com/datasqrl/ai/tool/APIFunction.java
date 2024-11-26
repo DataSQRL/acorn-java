@@ -3,6 +3,7 @@ package com.datasqrl.ai.tool;
 import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.tool.FunctionDefinition.Parameters;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.Map;
@@ -15,9 +16,14 @@ import lombok.Value;
 @Value
 public class APIFunction {
 
+  public static final String INVALID_CALL_MSG = "It looks like you tried to call function `%s`, "
+      + "but this has failed with the following error: %s"
+      + ". Please retry to call the function again. Send ONLY the JSON as a response.";
+
   FunctionDefinition function;
   Set<String> contextKeys;
   APIQuery apiQuery;
+  @JsonIgnore
   APIQueryExecutor apiExecutor;
 
   public APIFunction(@NonNull FunctionDefinition function, @NonNull Set<String> contextKeys,
@@ -34,6 +40,7 @@ public class APIFunction {
     }
   }
 
+  @JsonIgnore
   public FunctionDefinition getModelFunction() {
     Predicate<String> fieldFilter = getFieldFilter(contextKeys);
     Parameters newParams = Parameters.builder()
@@ -72,6 +79,15 @@ public class APIFunction {
   public String execute(JsonNode arguments, @NonNull Context context) throws IOException {
     JsonNode variables = FunctionUtil.addOrOverrideContext(arguments, contextKeys, context, apiExecutor.getObjectMapper());
     return apiExecutor.executeQuery(apiQuery, variables);
+  }
+
+  public String validateAndExecute(JsonNode arguments, @NonNull Context context) throws IOException {
+    ValidationResult result = validate(arguments);
+    if (result.isValid()) {
+      return execute(arguments, context);
+    } else {
+      return String.format(INVALID_CALL_MSG, getFunction().getName(), result.errorMessage());
+    }
   }
 
 }

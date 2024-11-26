@@ -177,8 +177,7 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
-  private static record OperationField (Operation op, GraphQLFieldDefinition fieldDefinition) {
-
+  private record OperationField (Operation op, GraphQLFieldDefinition fieldDefinition) {
   }
 
   public List<APIFunction> convertSchema() {
@@ -241,7 +240,19 @@ public class GraphQLSchemaConverter {
     return scalars;
   }
 
-  private record Context(String prefix, int numArgs) {}
+  private record Context(String opName, String prefix, int numArgs, List<GraphQLObjectType> path) {
+
+    public Context nested(String fieldName, GraphQLObjectType type, int additionalArgs) {
+      List<GraphQLObjectType> nestedPath = new ArrayList<>(path);
+      nestedPath.add(type);
+      return new Context(opName + "." + fieldName, combineStrings(prefix, fieldName),
+          numArgs + additionalArgs, nestedPath);
+    }
+  }
+
+  private static String path2String(List<GraphQLObjectType> path) {
+    return "[" + path.stream().map(GraphQLObjectType::getName).collect(Collectors.joining(",")) + "]";
+  }
 
   private static FunctionDefinition initializeFunctionDefinition(String name, String description) {
     FunctionDefinition funcDef = new FunctionDefinition();
@@ -258,12 +269,12 @@ public class GraphQLSchemaConverter {
   public APIFunction convert(Operation operationType, GraphQLFieldDefinition fieldDef) {
     FunctionDefinition funcDef = initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
     Parameters params = funcDef.getParameters();
-
+    String opName = operationType.name().toLowerCase() + "." + fieldDef.getName();
     StringBuilder queryHeader = new StringBuilder(operationType.name().toLowerCase()).append(" ")
         .append(fieldDef.getName()).append("(");
     StringBuilder queryBody = new StringBuilder();
 
-    visit(fieldDef, queryBody, queryHeader, params, new Context("", 0));
+    visit(fieldDef, queryBody, queryHeader, params, new Context(opName, "", 0, List.of()));
 
     queryHeader.append(") {\n").append(queryBody).append("\n}");
     APIQuery apiQuery = new GraphQLQuery(queryHeader.toString());
@@ -314,8 +325,21 @@ public class GraphQLSchemaConverter {
   }
 
 
-  public void visit(GraphQLFieldDefinition fieldDef, StringBuilder queryBody, StringBuilder queryHeader,
+  public boolean visit(GraphQLFieldDefinition fieldDef, StringBuilder queryBody, StringBuilder queryHeader,
       Parameters params, Context ctx) {
+    GraphQLOutputType type = unwrapType(fieldDef.getType());
+    if (type instanceof GraphQLObjectType) {
+      GraphQLObjectType objectType = (GraphQLObjectType) type;
+      //Don't recurse in a cycle or if depth limit is exceeded
+      if (ctx.path().contains(objectType)) {
+        log.info("Detected cycle on operation `{}`. Aborting traversal.", ctx.opName());
+        return false;
+      } else if (ctx.path().size() + 1 > config.getMaxDepth()) {
+        log.info("Aborting traversal because depth limit exceeded on operation `{}`", ctx.opName());
+        return false;
+      }
+    }
+
     queryBody.append(fieldDef.getName());
     int numArgs = 0;
     if (!fieldDef.getArguments().isEmpty()) {
@@ -345,16 +369,22 @@ public class GraphQLSchemaConverter {
       }
       queryBody.append(")");
     }
-    GraphQLOutputType type = unwrapType(fieldDef.getType());
     if (type instanceof GraphQLObjectType) {
+      GraphQLObjectType objectType = (GraphQLObjectType) type;
+      List<GraphQLObjectType> nestedPath = new ArrayList<>(ctx.path());
+      nestedPath.add(objectType);
       queryBody.append(" {\n");
-      for (GraphQLFieldDefinition nestedField : ((GraphQLObjectType)type).getFieldDefinitions()) {
-        visit(nestedField, queryBody, queryHeader, params, new Context(combineStrings(ctx.prefix(), nestedField.getName()), ctx.numArgs() + numArgs));
+      boolean atLeastOneField = false;
+      for (GraphQLFieldDefinition nestedField : objectType.getFieldDefinitions()) {
+        boolean success = visit(nestedField, queryBody, queryHeader, params,
+            ctx.nested(nestedField.getName(), objectType, numArgs));
+        atLeastOneField |= success;
       }
-      queryBody.append("}\n");
-    } else {
-      queryBody.append("\n");
+      ErrorHandling.checkArgument(atLeastOneField, "Expected at least on field on path: {}", ctx.opName());
+      queryBody.append("}");
     }
+    queryBody.append("\n");
+    return true;
   }
 
   private String processField(StringBuilder queryBody, StringBuilder queryHeader, Parameters params,

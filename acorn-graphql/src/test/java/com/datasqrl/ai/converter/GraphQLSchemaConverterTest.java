@@ -1,7 +1,9 @@
 package com.datasqrl.ai.converter;
 
 import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
+import static graphql.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.datasqrl.ai.TestUtil;
 import com.datasqrl.ai.api.APIQueryExecutor;
@@ -28,9 +30,14 @@ public class GraphQLSchemaConverterTest {
     GraphQLSchemaConverter converter = new GraphQLSchemaConverter(
         TestUtil.getResourcesFileAsString("graphql/nutshop-schema.graphqls"),
         GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("internal")).build(),
-        fctFactory);
+        new StandardAPIFunctionFactory(apiExecutor, Set.of("customerid")));
     List<APIFunction> functions = converter.convertSchema();
     assertEquals(5, functions.size());
+    //Test context key handling
+    APIFunction orders = functions.stream().filter(f -> f.getFunction().getName()
+        .equalsIgnoreCase("orders")).findFirst().get();
+    assertTrue(orders.getFunction().getParameters().getProperties().containsKey("customerid"));
+    assertFalse(orders.getModelFunction().getParameters().getProperties().containsKey("customerid"));
     snapshot(functions, "nutshop");
   }
 
@@ -84,7 +91,7 @@ public class GraphQLSchemaConverterTest {
 
   @SneakyThrows
   public static String convertToJsonDefault(List<APIFunction> functions) {
-    return FunctionUtil.toJsonString(functions.stream().map(APIFunction::getFunction).toList());
+    return FunctionUtil.toJsonString(functions);
   }
 
   public static void snapshot(List<APIFunction> functions, String testName) {

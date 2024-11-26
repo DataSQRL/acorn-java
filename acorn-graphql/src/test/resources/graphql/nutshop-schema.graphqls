@@ -103,6 +103,7 @@ type Products {
     category: String!
     usda_id: Float!
     updated: String!
+    orders(limit: Int = 10): [Orders!]
 }
 
 type CustomerChatMessage {
