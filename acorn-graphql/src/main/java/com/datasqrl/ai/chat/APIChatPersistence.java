@@ -18,8 +18,10 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 @Value
+@Slf4j
 public class APIChatPersistence implements ChatPersistence {
 
   APIQueryExecutor apiExecutor;
@@ -44,6 +46,7 @@ public class APIChatPersistence implements ChatPersistence {
     try {
       return apiExecutor.executeQueryAsync(saveMessage, payload);
     } catch (IOException e) {
+      log.error("Failed to save chat message: ", e);
       return CompletableFuture.failedFuture(e);
     }
   }
