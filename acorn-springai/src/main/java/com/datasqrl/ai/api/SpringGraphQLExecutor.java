@@ -76,7 +76,7 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
 
   @Override
   public ValidationResult validate(APIQuery query) {
-    if (query.query()!=null && !query.query().isBlank()) return new ValidationResult(ErrorType.INVALID_ARGUMENT, "Query cannot be empty");
+    if (query.query()==null || query.query().isBlank()) return new ValidationResult(ErrorType.INVALID_ARGUMENT, "Query cannot be empty");
     return ValidationResult.VALID;
   }
 

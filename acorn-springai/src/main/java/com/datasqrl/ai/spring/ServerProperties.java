@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 @Data
 public class ServerProperties {
 
-  private String memoryUrl;
-  private String toolsUrl;
+  private String backendUrl;
 
 }

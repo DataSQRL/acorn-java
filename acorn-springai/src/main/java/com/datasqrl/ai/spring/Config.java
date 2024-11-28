@@ -28,7 +28,6 @@ class Config {
     this.properties = properties;
   }
 
-
   @Bean
   ChatClient chatClient(ChatClient.Builder builder) {
     GraphQLTools toolConverter = new GraphQLTools(new GraphQLSchemaConverter(
@@ -43,7 +42,7 @@ class Config {
   }
 
   private SpringGraphQLExecutor getAPIExecutor() {
-    return new SpringGraphQLExecutor(properties.getMemoryUrl(), Optional.empty());
+    return new SpringGraphQLExecutor(properties.getBackendUrl(), Optional.empty());
   }
 
   private AcornChatMemory getMemory() {

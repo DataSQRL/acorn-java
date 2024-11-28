@@ -9,6 +9,7 @@ import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
 import com.datasqrl.ai.tool.APIFunction;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.tool.FunctionDefinition;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -64,7 +65,7 @@ public class GraphQLTools {
 
       @Override
       public String getInputTypeSchema() {
-        return "";
+        return inputSchema;
       }
 
       @Override
@@ -104,7 +105,7 @@ public class GraphQLTools {
 
   private static String toJsonString(Object object, ObjectMapper objectMapper) {
     try {
-      return objectMapper.writeValueAsString(object);
+      return objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(object);
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
