@@ -89,7 +89,7 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
       log.error("Query failed: {}", response);
       throw new IOException("Query failed: " + response);
     }
-
+    log.debug("Query result: {}", response.getBody());
     return response.getBody();
   }
 

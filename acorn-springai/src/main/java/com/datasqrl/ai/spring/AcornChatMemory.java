@@ -5,6 +5,8 @@ import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.util.ErrorHandling;
+import com.fasterxml.jackson.databind.JsonNode;
+import groovyjarjarantlr4.v4.tool.ToolMessage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -13,7 +15,13 @@ import java.util.Map;
 import lombok.Value;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AbstractMessage;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.ToolResponseMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 
 @Value
 public class AcornChatMemory implements ChatMemory {
@@ -40,7 +48,8 @@ public class AcornChatMemory implements ChatMemory {
 
   public List<Message> get(Map<String, Object> context, int lastN) {
     try {
-      return chatPersistence.getChatMessages(toContext(context), lastN, Message.class);
+      List<JsonNode> messages = chatPersistence.getChatMessages(toContext(context), lastN, JsonNode.class);
+      return messages.stream().map(this::toMessage).toList();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -68,6 +77,17 @@ public class AcornChatMemory implements ChatMemory {
       filteredContext.put(requiredKey, value);
     }
     return new ContextImpl(filteredContext);
+  }
+
+  private Message toMessage(JsonNode node) {
+    MessageType msgType = MessageType.fromValue(node.get(AbstractMessage.MESSAGE_TYPE).asText().trim().toLowerCase());
+    String content = node.get("content").asText();
+    return switch (msgType) {
+      case USER -> new UserMessage(content);
+      case ASSISTANT -> new AssistantMessage(content);
+      case SYSTEM -> new SystemMessage(content);
+      case TOOL -> throw new UnsupportedOperationException("Not yet implemented");
+    };
   }
 
 }
