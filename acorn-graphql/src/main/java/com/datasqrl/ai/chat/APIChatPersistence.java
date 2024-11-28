@@ -40,8 +40,11 @@ public class APIChatPersistence implements ChatPersistence {
     ObjectNode payload = mapper.valueToTree(message);
     //Inline context variables
     context.forEach((k, v) -> {
-      ErrorHandling.checkArgument(!payload.has(k), "Context variable overlaps with message: %s", k);
-      payload.set(k, mapper.valueToTree(v));
+      if (payload.has(k)) {
+        log.warn("Context variable overlaps with message field and is ignored: {}", k);
+      } else {
+        payload.set(k, mapper.valueToTree(v));
+      }
     });;
     try {
       return apiExecutor.executeQueryAsync(saveMessage, payload);

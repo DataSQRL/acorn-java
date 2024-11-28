@@ -13,8 +13,9 @@
     <module>acorn-bedrock</module>
     <module>acorn-groq</module>
     <module>acorn-vertex</module>
-    <module>acorn-spring</module>
+    <module>acorn-docker</module>
     <module>acorn-cloud</module>
+    <module>acorn-springai</module>
   </modules>
 
   <description>Acorn Parent POM</description>

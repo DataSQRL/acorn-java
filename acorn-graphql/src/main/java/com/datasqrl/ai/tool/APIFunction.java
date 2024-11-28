@@ -4,6 +4,7 @@ import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.tool.FunctionDefinition.Parameters;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 import java.util.Map;
@@ -38,6 +39,11 @@ public class APIFunction {
           "Function [" + function.getName() + "] invalid for API [" + apiExecutor
               + "]: " + result.errorMessage());
     }
+  }
+
+  @JsonIgnore
+  public String getName() {
+    return function.getName();
   }
 
   @JsonIgnore
@@ -87,6 +93,14 @@ public class APIFunction {
       return execute(arguments, context);
     } else {
       return String.format(INVALID_CALL_MSG, getFunction().getName(), result.errorMessage());
+    }
+  }
+
+  public String validateAndExecute(String arguments, @NonNull Context context) throws IOException {
+    try {
+      return validateAndExecute(apiExecutor.getObjectMapper().readTree(arguments), context);
+    } catch (JsonMappingException ex) {
+      return String.format(INVALID_CALL_MSG, getFunction().getName(), "Malformed JSON:" + ex.getMessage());
     }
   }
 

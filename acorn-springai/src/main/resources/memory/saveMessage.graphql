@@ -1,0 +1,5 @@
+mutation AddChatMsg($role: String!, $content: String!, $name: String, $functionCall: String, $chat_memory_conversation_userid: String!) {
+    InternalSaveChatMessage(message: {role: $role, content:$content, name: $name, functionCall: $functionCall, userid: $chat_memory_conversation_userid}) {
+        _uuid
+    }
+}

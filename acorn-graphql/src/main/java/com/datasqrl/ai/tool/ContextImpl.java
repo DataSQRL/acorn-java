@@ -22,20 +22,14 @@ import lombok.Getter;
 @Getter
 public class ContextImpl implements Context {
 
-  private final String requestId;
-  private int invocationId;
   private final Map<String, Object> secure;
 
   public Object get(String key) {
-    if (key.equalsIgnoreCase(REQUEST_ID_KEY)) return requestId;
-    if (key.equalsIgnoreCase(INVOCATION_KEY)) return invocationId;
     return secure.get(key);
   }
 
   public void forEach(BiConsumer<String, Object> action) {
     Objects.requireNonNull(action);
-    action.accept(REQUEST_ID_KEY, requestId);
-    action.accept(INVOCATION_KEY, invocationId);
     secure.forEach(action);
   }
 
@@ -45,7 +39,4 @@ public class ContextImpl implements Context {
     return result;
   }
 
-  public void nextInvocation() {
-    this.invocationId++;
-  }
 }

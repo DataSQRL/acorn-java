@@ -1,0 +1,8 @@
+query GetChatMessages($chat_memory_conversation_userid: String!, $limit: Int = 10) {
+    messages: InternalGetChatMessages(userid: $chat_memory_conversation_userid, limit: $limit) {
+        role
+        content
+        functionCall
+        name
+    }
+}

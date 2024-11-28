@@ -18,8 +18,12 @@ import java.util.function.BiConsumer;
  */
 public interface Context {
 
-  String REQUEST_ID_KEY = "requestid";
-  String INVOCATION_KEY = "invocationid";
+  static Context EMPTY = new Context() {
+    @Override
+    public Map<String, Object> asMap() {
+      return Collections.EMPTY_MAP;
+    }
+  };
 
   default Object get(String key) {
     return asMap().get(key);
@@ -31,7 +35,9 @@ public interface Context {
 
   Map<String,Object> asMap();
 
-  void nextInvocation();
+  default void nextInvocation() {
+    //Do nothing
+  }
 
   static Context of() {
     return of(Collections.emptyMap());
@@ -40,6 +46,6 @@ public interface Context {
   static Context of(Map<String, Object> secure) {
     //Invocations are incremented before a model is called, hence we start with -1 (to indicate
     //model has not yet been called) so the first invocation is 0.
-    return new ContextImpl(UUID.randomUUID().toString(), -1, secure);
+    return new ContextImpl(secure);
   }
 }
