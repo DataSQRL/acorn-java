@@ -1,4 +1,4 @@
-package com.datasqrl.ai.api;
+package com.datasqrl.ai.acorn;
 
 import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;

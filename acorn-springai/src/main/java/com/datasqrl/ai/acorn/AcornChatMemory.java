@@ -1,15 +1,12 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.acorn;
 
 import com.datasqrl.ai.chat.APIChatPersistence;
-import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.util.ErrorHandling;
 import com.fasterxml.jackson.databind.JsonNode;
-import groovyjarjarantlr4.v4.tool.ToolMessage;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Value;
@@ -20,7 +17,6 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.SystemMessage;
-import org.springframework.ai.chat.messages.ToolResponseMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 
 @Value

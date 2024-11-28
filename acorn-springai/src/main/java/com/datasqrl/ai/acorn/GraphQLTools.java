@@ -1,11 +1,6 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.acorn;
 
-import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
-
-import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
-import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
-import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
 import com.datasqrl.ai.tool.APIFunction;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.tool.FunctionDefinition;
