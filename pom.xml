@@ -42,9 +42,11 @@
   </scm>
 
   <properties>
+    <gcf.skipInstallHooks>true</gcf.skipInstallHooks>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <lombok.version>1.18.34</lombok.version>
     <jackson.version>2.17.1</jackson.version>
@@ -58,7 +60,8 @@
     <okhttp.version>4.12.0</okhttp.version>
     <spring.version>6.1.11</spring.version>
     <h2.version>2.2.224</h2.version>
-
+    <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
+    <surefire-plugin.version>3.5.0</surefire-plugin.version>
   </properties>
 
   <dependencies>
@@ -87,7 +90,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.2</version>
+        <version>${surefire-plugin.version}</version>
         <dependencies>
           <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -143,6 +146,98 @@
           </execution>
         </executions>
       </plugin>
+      
+      
+      <!-- linter for pom files, will be applied automatically on every build -->
+      <plugin>
+        <groupId>com.github.ekryd.sortpom</groupId>
+        <artifactId>sortpom-maven-plugin</artifactId>
+        <version>4.0.0</version>
+        <configuration>
+          <keepBlankLines>true</keepBlankLines>
+          <lineSeparator>\n</lineSeparator>
+          <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+          <createBackupFile>false</createBackupFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals>
+              <goal>sort</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- linter for java code, will be applied automatically when files are committed to git -->
+      <!-- alternatively, can run with -Pdev to force code format on the whole project -->
+      <plugin>
+        <groupId>com.cosium.code</groupId>
+        <artifactId>git-code-format-maven-plugin</artifactId>
+        <version>${git-code-format-maven-plugin.version}</version>
+        <dependencies>
+          <!-- Enable https://github.com/google/google-java-format -->
+          <dependency>
+            <groupId>com.cosium.code</groupId>
+            <artifactId>google-java-format</artifactId>
+            <version>${git-code-format-maven-plugin.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <!-- On commit, format the modified files -->
+          <execution>
+            <id>install-formatter-hook</id>
+            <goals>
+              <goal>install-hooks</goal>
+            </goals>
+            <inherited>false</inherited>
+          </execution>
+          <!-- On Maven verify phase, fail if any file (including
+					unmodified) is
+            badly formatted -->
+          <execution>
+            <id>validate-code-format</id>
+            <goals>
+              <goal>validate-code-format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/annotations</source>
+                <source>target/generated-sources/graphql</source>
+                <source>target/generated-sources/java</source>
+              </sources>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-test-source</id>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <phase>generate-test-sources</phase>
+            <configuration>
+              <sources>
+                <source>target/generated-test-sources/test-annotations</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
@@ -186,4 +281,52 @@
     </pluginManagement>
   </build>
 
+  <profiles>
+    <profile>
+      <!-- useful profile for local development -->
+      <id>dev</id>
+
+      <properties>
+        <gcf.skipInstallHooks>false</gcf.skipInstallHooks>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.cosium.code</groupId>
+            <artifactId>git-code-format-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>format-code</id>
+                <goals>
+                  <goal>format-code</goal>
+                </goals>
+                <phase>initialize</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <!-- just compile, skip all other checks -->
+      <id>quickbuild</id>
+      <properties>
+        <skipTests>true</skipTests>
+        <enforcer.skip>true</enforcer.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <gcf.skip>true</gcf.skip>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- extra tasks only meant to be executed by CI server -->
+      <id>ci</id>
+      <properties>
+        <gcf.skip>true</gcf.skip>
+      </properties>
+
+    </profile>
+    </profiles>
 </project>
