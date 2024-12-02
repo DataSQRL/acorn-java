@@ -21,7 +21,11 @@ public class AcornChatMemoryAdvisor extends AbstractChatMemoryAdvisor<AcornChatM
   }
 
   public AcornChatMemoryAdvisor(AcornChatMemory chatMemory, int defaultChatMemoryRetrieveSize) {
-    super(chatMemory, AbstractChatMemoryAdvisor.DEFAULT_CHAT_MEMORY_CONVERSATION_ID, defaultChatMemoryRetrieveSize, true);
+    super(
+        chatMemory,
+        AbstractChatMemoryAdvisor.DEFAULT_CHAT_MEMORY_CONVERSATION_ID,
+        defaultChatMemoryRetrieveSize,
+        true);
   }
 
   @Override
@@ -33,8 +37,10 @@ public class AcornChatMemoryAdvisor extends AbstractChatMemoryAdvisor<AcornChatM
   }
 
   @Override
-  public Flux<AdvisedResponse> aroundStream(AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
-    Flux<AdvisedResponse> advisedResponses = this.doNextWithProtectFromBlockingBefore(advisedRequest, chain, this::before);
+  public Flux<AdvisedResponse> aroundStream(
+      AdvisedRequest advisedRequest, StreamAroundAdvisorChain chain) {
+    Flux<AdvisedResponse> advisedResponses =
+        this.doNextWithProtectFromBlockingBefore(advisedRequest, chain, this::before);
     return (new MessageAggregator()).aggregateAdvisedResponse(advisedResponses, this::observeAfter);
   }
 
@@ -44,17 +50,19 @@ public class AcornChatMemoryAdvisor extends AbstractChatMemoryAdvisor<AcornChatM
     List<Message> memoryMessages = getChatMemoryStore().get(adviseContext, chatMemoryRetrieveSize);
     List<Message> advisedMessages = new ArrayList(request.messages());
     advisedMessages.addAll(memoryMessages);
-    AdvisedRequest advisedRequest = AdvisedRequest.from(request).withMessages(advisedMessages).build();
+    AdvisedRequest advisedRequest =
+        AdvisedRequest.from(request).withMessages(advisedMessages).build();
     UserMessage userMessage = new UserMessage(request.userText(), request.media());
     getChatMemoryStore().add(List.of(userMessage), adviseContext);
     return advisedRequest;
   }
 
   private void observeAfter(AdvisedResponse advisedResponse) {
-    List<Message> assistantMessages = advisedResponse.response().getResults().stream().map(
-        Generation::getOutput).map(Message.class::cast).toList();
+    List<Message> assistantMessages =
+        advisedResponse.response().getResults().stream()
+            .map(Generation::getOutput)
+            .map(Message.class::cast)
+            .toList();
     getChatMemoryStore().add(assistantMessages, advisedResponse.adviseContext());
   }
-
 }
-

@@ -29,7 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Implements the {@link APIQueryExecutor} interface for GraphQL APIs using Spring RestTemplate as the client.
+ * Implements the {@link APIQueryExecutor} interface for GraphQL APIs using Spring RestTemplate as
+ * the client.
  */
 @Slf4j
 @Service
@@ -63,9 +64,12 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
       }
       Set<ValidationMessage> schemaErrors = schema.validate(arguments);
       if (!schemaErrors.isEmpty()) {
-        String schemaErrorsText = schemaErrors.stream().map(ValidationMessage::toString).collect(
-            Collectors.joining("; "));
-        return new ValidationResult(ErrorType.INVALID_JSON, "Provided arguments do not match schema: " + schemaErrorsText);
+        String schemaErrorsText =
+            schemaErrors.stream()
+                .map(ValidationMessage::toString)
+                .collect(Collectors.joining("; "));
+        return new ValidationResult(
+            ErrorType.INVALID_JSON, "Provided arguments do not match schema: " + schemaErrorsText);
       } else {
         return ValidationResult.VALID;
       }
@@ -76,7 +80,8 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
 
   @Override
   public ValidationResult validate(APIQuery query) {
-    if (query.query()==null || query.query().isBlank()) return new ValidationResult(ErrorType.INVALID_ARGUMENT, "Query cannot be empty");
+    if (query.query() == null || query.query().isBlank())
+      return new ValidationResult(ErrorType.INVALID_ARGUMENT, "Query cannot be empty");
     return ValidationResult.VALID;
   }
 
@@ -84,7 +89,8 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
   public String executeQuery(APIQuery query, JsonNode arguments) throws IOException {
     HttpEntity<String> request = buildRequest(query.query(), arguments);
     log.debug("Executing query:  {}", request);
-    ResponseEntity<String> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
+    ResponseEntity<String> response =
+        restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
     if (!response.getStatusCode().is2xxSuccessful()) {
       log.error("Query failed: {}", response);
       throw new IOException("Query failed: " + response);
@@ -95,19 +101,19 @@ public class SpringGraphQLExecutor implements APIQueryExecutor {
 
   @Override
   public CompletableFuture<String> executeQueryAsync(APIQuery query, JsonNode arguments) {
-    return CompletableFuture.supplyAsync(() -> {
-      try {
-        return executeQuery(query, arguments);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    return CompletableFuture.supplyAsync(
+        () -> {
+          try {
+            return executeQuery(query, arguments);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   private HttpEntity<String> buildRequest(String query, JsonNode arguments) throws IOException {
-    JsonNode requestBody = objectMapper.createObjectNode()
-        .put("query", query)
-        .set("variables", arguments);
+    JsonNode requestBody =
+        objectMapper.createObjectNode().put("query", query).set("variables", arguments);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);

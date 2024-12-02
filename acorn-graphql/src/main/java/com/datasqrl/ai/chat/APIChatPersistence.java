@@ -3,7 +3,6 @@ package com.datasqrl.ai.chat;
 import com.datasqrl.ai.api.APIQuery;
 import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.tool.Context;
-import com.datasqrl.ai.util.ErrorHandling;
 import com.datasqrl.ai.tool.FunctionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -35,17 +34,20 @@ public class APIChatPersistence implements ChatPersistence {
    * @param message chat message to save
    * @return A future for this asynchronous operation which returns the result as a string.
    */
-  public CompletableFuture<String> saveChatMessage(@NonNull Object message, @NonNull Context context) {
+  public CompletableFuture<String> saveChatMessage(
+      @NonNull Object message, @NonNull Context context) {
     ObjectMapper mapper = apiExecutor.getObjectMapper();
     ObjectNode payload = mapper.valueToTree(message);
-    //Inline context variables
-    context.forEach((k, v) -> {
-      if (payload.has(k)) {
-        log.warn("Context variable overlaps with message field and is ignored: {}", k);
-      } else {
-        payload.set(k, mapper.valueToTree(v));
-      }
-    });;
+    // Inline context variables
+    context.forEach(
+        (k, v) -> {
+          if (payload.has(k)) {
+            log.warn("Context variable overlaps with message field and is ignored: {}", k);
+          } else {
+            payload.set(k, mapper.valueToTree(v));
+          }
+        });
+    ;
     try {
       return apiExecutor.executeQueryAsync(saveMessage, payload);
     } catch (IOException e) {
@@ -55,12 +57,13 @@ public class APIChatPersistence implements ChatPersistence {
   }
 
   /**
-   * Retrieves saved chat messages from the API via the configured function call.
-   * If no function call for message retrieval is configured, an empty list is returned.
+   * Retrieves saved chat messages from the API via the configured function call. If no function
+   * call for message retrieval is configured, an empty list is returned.
    *
-   * Uses the configured context to retrieve user or context specific chat messages.
+   * <p>Uses the configured context to retrieve user or context specific chat messages.
    *
-   * @param context Arbitrary session context that identifies a user or provides contextual information.
+   * @param context Arbitrary session context that identifies a user or provides contextual
+   *     information.
    * @return Saved messages for the provided context
    */
   public <ChatMessage> List<ChatMessage> getChatMessages(
@@ -68,7 +71,8 @@ public class APIChatPersistence implements ChatPersistence {
     ObjectMapper mapper = apiExecutor.getObjectMapper();
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put("limit", limit);
-    JsonNode variables = FunctionUtil.addOrOverrideContext(arguments, getMessageContextKeys, context, mapper);
+    JsonNode variables =
+        FunctionUtil.addOrOverrideContext(arguments, getMessageContextKeys, context, mapper);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
@@ -81,10 +85,7 @@ public class APIChatPersistence implements ChatPersistence {
       ChatMessage chatMessage = mapper.treeToValue(node, clazz);
       chatMessages.add(chatMessage);
     }
-    Collections.reverse(chatMessages); //newest should be last
+    Collections.reverse(chatMessages); // newest should be last
     return chatMessages;
-
   }
-
-
 }

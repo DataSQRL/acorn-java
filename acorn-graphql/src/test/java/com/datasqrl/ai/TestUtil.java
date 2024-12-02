@@ -15,7 +15,7 @@ public class TestUtil {
 
   public static URL getResourceFile(String path) {
     URL url = TestUtil.class.getClassLoader().getResource(path);
-    ErrorHandling.checkArgument(url!=null, "Invalid url: %s", url);
+    ErrorHandling.checkArgument(url != null, "Invalid url: %s", url);
     return url;
   }
 
@@ -34,7 +34,5 @@ public class TestUtil {
       Files.writeString(pathToExpected, result, StandardCharsets.UTF_8, CREATE);
       fail("Created snapshot: " + pathToExpected.toAbsolutePath());
     }
-
   }
-
 }

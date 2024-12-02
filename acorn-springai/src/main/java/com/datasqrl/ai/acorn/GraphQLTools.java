@@ -36,8 +36,10 @@ public class GraphQLTools {
   }
 
   public static FunctionCallback[] from(Collection<APIFunction>... functions) {
-    return Arrays.stream(functions).flatMap(Collection::stream).
-        map(GraphQLTools::from).toArray(FunctionCallback[]::new);
+    return Arrays.stream(functions)
+        .flatMap(Collection::stream)
+        .map(GraphQLTools::from)
+        .toArray(FunctionCallback[]::new);
   }
 
   public static FunctionCallback[] from(APIFunction... functions) {
@@ -46,7 +48,8 @@ public class GraphQLTools {
 
   public static FunctionCallback from(APIFunction function) {
     FunctionDefinition funcDef = function.getModelFunction();
-    String inputSchema = toJsonString(funcDef.getParameters(), function.getApiExecutor().getObjectMapper());
+    String inputSchema =
+        toJsonString(funcDef.getParameters(), function.getApiExecutor().getObjectMapper());
     return new FunctionCallback() {
       @Override
       public String getName() {
@@ -70,10 +73,10 @@ public class GraphQLTools {
 
       @Override
       public String call(String functionInput, ToolContext toolContext) {
-        Context ctx = toolContext==null?Context.EMPTY:new ToolContextWrapper(toolContext);
+        Context ctx = toolContext == null ? Context.EMPTY : new ToolContextWrapper(toolContext);
         try {
           return function.validateAndExecute(functionInput, ctx);
-        } catch (IOException e) { //This must be an operational exception, hence escalate
+        } catch (IOException e) { // This must be an operational exception, hence escalate
           throw new RuntimeException(e);
         }
       }
@@ -82,7 +85,7 @@ public class GraphQLTools {
 
   private record ToolContextWrapper(ToolContext toolContext) implements Context {
 
-    private final static Set<String> FILTERED_FIELDS = Set.of(ToolContext.TOOL_CALL_HISTORY);
+    private static final Set<String> FILTERED_FIELDS = Set.of(ToolContext.TOOL_CALL_HISTORY);
 
     @Override
     public Object get(String key) {
@@ -97,15 +100,13 @@ public class GraphQLTools {
     }
   }
 
-
   private static String toJsonString(Object object, ObjectMapper objectMapper) {
     try {
-      return objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL).writeValueAsString(object);
+      return objectMapper
+          .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+          .writeValueAsString(object);
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
   }
-
-
-
 }

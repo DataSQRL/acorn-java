@@ -8,5 +8,4 @@ import com.datasqrl.ai.tool.FunctionDefinition;
 public interface APIFunctionFactory {
 
   APIFunction create(FunctionDefinition function, APIQuery query);
-
 }

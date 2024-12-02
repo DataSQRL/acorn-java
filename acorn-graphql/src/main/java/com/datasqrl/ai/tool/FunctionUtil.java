@@ -17,8 +17,11 @@ public class FunctionUtil {
     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.valueToTree(tools));
   }
 
-  public static JsonNode addOrOverrideContext(JsonNode arguments, @NonNull Set<String> contextKeys,
-      @NonNull Context context, @NonNull ObjectMapper mapper) {
+  public static JsonNode addOrOverrideContext(
+      JsonNode arguments,
+      @NonNull Set<String> contextKeys,
+      @NonNull Context context,
+      @NonNull ObjectMapper mapper) {
     // Create a copy of the original JsonNode to add context
     ObjectNode copyJsonNode;
     if (arguments == null || arguments.isEmpty()) {
@@ -34,6 +37,4 @@ public class FunctionUtil {
     }
     return copyJsonNode;
   }
-
-
 }

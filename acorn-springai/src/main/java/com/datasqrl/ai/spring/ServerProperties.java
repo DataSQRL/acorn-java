@@ -10,5 +10,4 @@ import org.springframework.stereotype.Component;
 public class ServerProperties {
 
   private String backendUrl;
-
 }

@@ -8,15 +8,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * The {@link ContextImpl} class captures the context of an agent interaction.
- * It has a request id that is unique for each interaction and an invocation counter
- * for the number of times the LLM is invoked in the course of producing a request response.
+ * The {@link ContextImpl} class captures the context of an agent interaction. It has a request id
+ * that is unique for each interaction and an invocation counter for the number of times the LLM is
+ * invoked in the course of producing a request response.
  *
- * Additional key-value pairs can be provided to securely pass information to the function
- * calls outside the LLM call stack.
+ * <p>Additional key-value pairs can be provided to securely pass information to the function calls
+ * outside the LLM call stack.
  *
- * The request id and secure information are static for the duration of an interaction.
- * The counter is incremented for each time the LLM is invoked.
+ * <p>The request id and secure information are static for the duration of an interaction. The
+ * counter is incremented for each time the LLM is invoked.
  */
 @AllArgsConstructor
 @Getter
@@ -33,10 +33,9 @@ public class ContextImpl implements Context {
     secure.forEach(action);
   }
 
-  public Map<String,Object> asMap() {
-    Map<String, Object> result = new HashMap<>(secure.size()+2);
+  public Map<String, Object> asMap() {
+    Map<String, Object> result = new HashMap<>(secure.size() + 2);
     forEach(result::put);
     return result;
   }
-
 }

@@ -1,8 +1,8 @@
 package com.datasqrl.ai.acorn;
 
 import com.datasqrl.ai.chat.APIChatPersistence;
-import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.tool.Context;
+import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.util.ErrorHandling;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
@@ -44,7 +44,8 @@ public class AcornChatMemory implements ChatMemory {
 
   public List<Message> get(Map<String, Object> context, int lastN) {
     try {
-      List<JsonNode> messages = chatPersistence.getChatMessages(toContext(context), lastN, JsonNode.class);
+      List<JsonNode> messages =
+          chatPersistence.getChatMessages(toContext(context), lastN, JsonNode.class);
       return messages.stream().map(this::toMessage).toList();
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -63,20 +64,23 @@ public class AcornChatMemory implements ChatMemory {
   private Context toContext(Map<String, Object> advisorContext) {
     Map<String, Object> filteredContext = new HashMap<>();
     if (contextPrefix != null) {
-      advisorContext.entrySet().stream().filter(entry -> entry.getKey().startsWith(contextPrefix))
+      advisorContext.entrySet().stream()
+          .filter(entry -> entry.getKey().startsWith(contextPrefix))
           .forEach(entry -> filteredContext.put(entry.getKey(), entry.getValue()));
     }
-    //Add required keys, make sure they exist
+    // Add required keys, make sure they exist
     for (String requiredKey : chatPersistence.getGetMessageContextKeys()) {
       Object value = advisorContext.get(requiredKey);
-      ErrorHandling.checkArgument(value!=null, "Advisor context does not contain required key: %s", requiredKey);
+      ErrorHandling.checkArgument(
+          value != null, "Advisor context does not contain required key: %s", requiredKey);
       filteredContext.put(requiredKey, value);
     }
     return new ContextImpl(filteredContext);
   }
 
   private Message toMessage(JsonNode node) {
-    MessageType msgType = MessageType.fromValue(node.get(AbstractMessage.MESSAGE_TYPE).asText().trim().toLowerCase());
+    MessageType msgType =
+        MessageType.fromValue(node.get(AbstractMessage.MESSAGE_TYPE).asText().trim().toLowerCase());
     String content = node.get("content").asText();
     return switch (msgType) {
       case USER -> new UserMessage(content);
@@ -85,5 +89,4 @@ public class AcornChatMemory implements ChatMemory {
       case TOOL -> throw new UnsupportedOperationException("Not yet implemented");
     };
   }
-
 }

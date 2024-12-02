@@ -6,8 +6,8 @@ import com.datasqrl.ai.tool.APIFunction;
 import com.datasqrl.ai.tool.FunctionDefinition;
 import java.util.Set;
 
-public record StandardAPIFunctionFactory(APIQueryExecutor apiExecutor,
-                                         Set<String> contextKeys) implements APIFunctionFactory {
+public record StandardAPIFunctionFactory(APIQueryExecutor apiExecutor, Set<String> contextKeys)
+    implements APIFunctionFactory {
 
   @Override
   public APIFunction create(FunctionDefinition function, APIQuery query) {

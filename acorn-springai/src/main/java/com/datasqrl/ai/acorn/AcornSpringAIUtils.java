@@ -12,6 +12,4 @@ public class AcornSpringAIUtils {
     byte[] resourceBytes = Files.readAllBytes(Paths.get(resource.getURI()));
     return new String(resourceBytes);
   }
-
-
 }

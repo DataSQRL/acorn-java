@@ -21,6 +21,7 @@ import graphql.language.Type;
 import graphql.language.TypeName;
 import graphql.language.VariableDefinition;
 import graphql.parser.Parser;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
@@ -40,7 +41,6 @@ import graphql.schema.idl.SchemaGenerator;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.SchemaPrinter;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.scalars.ExtendedScalars;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -56,10 +56,9 @@ import java.util.stream.Stream;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
- * Converts a given GraphQL Schema to a tools configuration for the function backend.
- * It extracts all queries and mutations and converts them into {@link com.datasqrl.ai.tool.APIFunction}.
+ * Converts a given GraphQL Schema to a tools configuration for the function backend. It extracts
+ * all queries and mutations and converts them into {@link com.datasqrl.ai.tool.APIFunction}.
  */
 @Value
 @Slf4j
@@ -69,12 +68,12 @@ public class GraphQLSchemaConverter {
   GraphQLSchemaConverterConfig config;
   GraphQLSchema schema;
 
-  public GraphQLSchemaConverter(String schemaString,
-      APIFunctionFactory functionFactory) {
+  public GraphQLSchemaConverter(String schemaString, APIFunctionFactory functionFactory) {
     this(schemaString, GraphQLSchemaConverterConfig.DEFAULT, functionFactory);
   }
 
-  public GraphQLSchemaConverter(String schemaString,
+  public GraphQLSchemaConverter(
+      String schemaString,
       GraphQLSchemaConverterConfig config,
       APIFunctionFactory functionFactory) {
     this.functionFactory = functionFactory;
@@ -89,18 +88,23 @@ public class GraphQLSchemaConverter {
     return new SchemaGenerator().makeExecutableSchema(typeRegistry, runtimeWiringBuilder.build());
   }
 
-  SchemaPrinter schemaPrinter = new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
+  SchemaPrinter schemaPrinter =
+      new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
 
   public List<APIFunction> convertOperations(String operationDefinition) {
     Parser parser = new Parser();
     Document document = parser.parseDocument(operationDefinition);
-    ErrorHandling.checkArgument(!document.getDefinitions().isEmpty(), "Operation definition contains no definitions");
+    ErrorHandling.checkArgument(
+        !document.getDefinitions().isEmpty(), "Operation definition contains no definitions");
 
     List<APIFunction> functions = new ArrayList<>();
     Iterator<Definition> defIter = document.getDefinitions().iterator();
     Definition definition = defIter.next();
     do {
-      ErrorHandling.checkArgument(definition instanceof OperationDefinition, "Expected definition to be an operation, but got: %s", operationDefinition);
+      ErrorHandling.checkArgument(
+          definition instanceof OperationDefinition,
+          "Expected definition to be an operation, but got: %s",
+          operationDefinition);
       FunctionDefinition fctDef = convertOperationDefinition(((OperationDefinition) definition));
 
       SourceLocation startLocation = definition.getSourceLocation();
@@ -110,16 +114,22 @@ public class GraphQLSchemaConverter {
         definition = defIter.next();
         endLocation = definition.getSourceLocation();
       }
-      //Get string between source and end location
-      String queryString = extractOperation(operationDefinition, startLocation.getLine(),
-          startLocation.getColumn(), endLocation.getLine(), endLocation.getColumn());
+      // Get string between source and end location
+      String queryString =
+          extractOperation(
+              operationDefinition,
+              startLocation.getLine(),
+              startLocation.getColumn(),
+              endLocation.getLine(),
+              endLocation.getColumn());
       APIQuery query = new GraphQLQuery(queryString);
       functions.add(functionFactory.create(fctDef, query));
-    } while (definition !=null);
+    } while (definition != null);
     return functions;
   }
 
-  private static String extractOperation(String text, int startLine, int startColumn, int endLine, int endColumn) {
+  private static String extractOperation(
+      String text, int startLine, int startColumn, int endLine, int endColumn) {
     String[] lines = text.split("\n");
     StringBuilder result = new StringBuilder();
     endLine = Math.min(endLine, lines.length);
@@ -145,13 +155,17 @@ public class GraphQLSchemaConverter {
 
     return result.toString();
   }
+
   private static String comments2String(List<Comment> comments) {
     return comments.stream().map(Comment::getContent).collect(Collectors.joining(" "));
   }
 
   public FunctionDefinition convertOperationDefinition(OperationDefinition node) {
     Operation op = node.getOperation();
-    ErrorHandling.checkArgument(op == Operation.QUERY || op==Operation.MUTATION, "Do not support subscriptions: %s", node.getName());
+    ErrorHandling.checkArgument(
+        op == Operation.QUERY || op == Operation.MUTATION,
+        "Do not support subscriptions: %s",
+        node.getName());
     String fctComment = comments2String(node.getComments());
     String fctName = node.getName();
 
@@ -178,29 +192,37 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
-  private record OperationField (Operation op, GraphQLFieldDefinition fieldDefinition) {
-  }
+  private record OperationField(Operation op, GraphQLFieldDefinition fieldDefinition) {}
 
   public List<APIFunction> convertSchema() {
     List<APIFunction> functions = new ArrayList<>();
 
-    List<GraphQLFieldDefinition> queries = Optional.ofNullable(schema.getQueryType())
-        .map(GraphQLObjectType::getFieldDefinitions).orElse(List.of());
-    List<GraphQLFieldDefinition> mutations = Optional.ofNullable(schema.getMutationType())
-        .map(GraphQLObjectType::getFieldDefinitions).orElse(List.of());
-    Stream.concat(queries.stream().map(fieldDef -> new OperationField(Operation.QUERY, fieldDef))
-            ,mutations.stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
-        .flatMap(input -> {
-          try {
-            if (config.getOperationFilter().test(input.op(), input.fieldDefinition().getName())) {
-              return Stream.of(convert(input.op(), input.fieldDefinition()));
-            } // else filter out
-            return Stream.of();
-          } catch (Exception e) {
-            log.error("Error converting query: {}", input.fieldDefinition().getName(), e);
-            return Stream.of();
-          }
-        }).forEach(functions::add);
+    List<GraphQLFieldDefinition> queries =
+        Optional.ofNullable(schema.getQueryType())
+            .map(GraphQLObjectType::getFieldDefinitions)
+            .orElse(List.of());
+    List<GraphQLFieldDefinition> mutations =
+        Optional.ofNullable(schema.getMutationType())
+            .map(GraphQLObjectType::getFieldDefinitions)
+            .orElse(List.of());
+    Stream.concat(
+            queries.stream().map(fieldDef -> new OperationField(Operation.QUERY, fieldDef)),
+            mutations.stream().map(fieldDef -> new OperationField(Operation.MUTATION, fieldDef)))
+        .flatMap(
+            input -> {
+              try {
+                if (config
+                    .getOperationFilter()
+                    .test(input.op(), input.fieldDefinition().getName())) {
+                  return Stream.of(convert(input.op(), input.fieldDefinition()));
+                } // else filter out
+                return Stream.of();
+              } catch (Exception e) {
+                log.error("Error converting query: {}", input.fieldDefinition().getName(), e);
+                return Stream.of();
+              }
+            })
+        .forEach(functions::add);
     return functions;
   }
 
@@ -218,7 +240,8 @@ public class GraphQLSchemaConverter {
       if (graphQLType instanceof GraphQLInputType graphQLInputType) {
         return GraphQLSchemaConverter.this.convert(graphQLInputType);
       } else {
-        throw new UnsupportedOperationException("Unexpected type [" + typeName + "] with class: " + graphQLType);
+        throw new UnsupportedOperationException(
+            "Unexpected type [" + typeName + "] with class: " + graphQLType);
       }
     } else throw new UnsupportedOperationException("Unexpected type:  " + type);
     return argument;
@@ -229,9 +252,9 @@ public class GraphQLSchemaConverter {
 
     Field[] fields = ExtendedScalars.class.getFields();
     for (Field field : fields) {
-      if (Modifier.isPublic(field.getModifiers()) &&
-          Modifier.isStatic(field.getModifiers()) &&
-          GraphQLScalarType.class.isAssignableFrom(field.getType())) {
+      if (Modifier.isPublic(field.getModifiers())
+          && Modifier.isStatic(field.getModifiers())
+          && GraphQLScalarType.class.isAssignableFrom(field.getType())) {
         try {
           scalars.add((GraphQLScalarType) field.get(null));
         } catch (IllegalAccessException e) {
@@ -248,13 +271,18 @@ public class GraphQLSchemaConverter {
     public Context nested(String fieldName, GraphQLObjectType type, int additionalArgs) {
       List<GraphQLObjectType> nestedPath = new ArrayList<>(path);
       nestedPath.add(type);
-      return new Context(opName + "." + fieldName, combineStrings(prefix, fieldName),
-          numArgs + additionalArgs, nestedPath);
+      return new Context(
+          opName + "." + fieldName,
+          combineStrings(prefix, fieldName),
+          numArgs + additionalArgs,
+          nestedPath);
     }
   }
 
   private static String path2String(List<GraphQLObjectType> path) {
-    return "[" + path.stream().map(GraphQLObjectType::getName).collect(Collectors.joining(",")) + "]";
+    return "["
+        + path.stream().map(GraphQLObjectType::getName).collect(Collectors.joining(","))
+        + "]";
   }
 
   private static FunctionDefinition initializeFunctionDefinition(String name, String description) {
@@ -270,11 +298,15 @@ public class GraphQLSchemaConverter {
   }
 
   public APIFunction convert(Operation operationType, GraphQLFieldDefinition fieldDef) {
-    FunctionDefinition funcDef = initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
+    FunctionDefinition funcDef =
+        initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
     Parameters params = funcDef.getParameters();
     String opName = operationType.name().toLowerCase() + "." + fieldDef.getName();
-    StringBuilder queryHeader = new StringBuilder(operationType.name().toLowerCase()).append(" ")
-        .append(fieldDef.getName()).append("(");
+    StringBuilder queryHeader =
+        new StringBuilder(operationType.name().toLowerCase())
+            .append(" ")
+            .append(fieldDef.getName())
+            .append("(");
     StringBuilder queryBody = new StringBuilder();
 
     visit(fieldDef, queryBody, queryHeader, params, new Context(opName, "", 0, List.of()));
@@ -285,9 +317,8 @@ public class GraphQLSchemaConverter {
   }
 
   private static String combineStrings(String prefix, String suffix) {
-    return prefix + (prefix.isBlank()? "" : "_") + suffix;
+    return prefix + (prefix.isBlank() ? "" : "_") + suffix;
   }
-
 
   private record UnwrappedType(GraphQLInputType type, boolean required) {}
 
@@ -306,10 +337,16 @@ public class GraphQLSchemaConverter {
       argument.setType(convertScalarTypeToJsonType((GraphQLScalarType) graphQLInputType));
     } else if (graphQLInputType instanceof GraphQLEnumType enumType) {
       argument.setType("string");
-      argument.setEnumValues(enumType.getValues().stream().map(GraphQLEnumValueDefinition::getName).collect(Collectors.toSet()));
+      argument.setEnumValues(
+          enumType.getValues().stream()
+              .map(GraphQLEnumValueDefinition::getName)
+              .collect(Collectors.toSet()));
     } else if (graphQLInputType instanceof GraphQLList) {
       argument.setType("array");
-      argument.setItems(convert(convertRequired((GraphQLInputType) ((GraphQLList) graphQLInputType).getWrappedType()).type()));
+      argument.setItems(
+          convert(
+              convertRequired((GraphQLInputType) ((GraphQLList) graphQLInputType).getWrappedType())
+                  .type()));
     } else {
       throw new UnsupportedOperationException("Unsupported type: " + graphQLInputType);
     }
@@ -323,17 +360,20 @@ public class GraphQLSchemaConverter {
       case "String" -> "string";
       case "Boolean" -> "boolean";
       case "ID" -> "string"; // Typically treated as a string in JSON Schema
-      default -> "string"; //We assume that type can be cast from string.
+      default -> "string"; // We assume that type can be cast from string.
     };
   }
 
-
-  public boolean visit(GraphQLFieldDefinition fieldDef, StringBuilder queryBody, StringBuilder queryHeader,
-      Parameters params, Context ctx) {
+  public boolean visit(
+      GraphQLFieldDefinition fieldDef,
+      StringBuilder queryBody,
+      StringBuilder queryHeader,
+      Parameters params,
+      Context ctx) {
     GraphQLOutputType type = unwrapType(fieldDef.getType());
     if (type instanceof GraphQLObjectType) {
       GraphQLObjectType objectType = (GraphQLObjectType) type;
-      //Don't recurse in a cycle or if depth limit is exceeded
+      // Don't recurse in a cycle or if depth limit is exceeded
       if (ctx.path().contains(objectType)) {
         log.info("Detected cycle on operation `{}`. Aborting traversal.", ctx.opName());
         return false;
@@ -354,8 +394,17 @@ public class GraphQLSchemaConverter {
           for (GraphQLInputObjectField nestedField : inputType.getFieldDefinitions()) {
             String argName = combineStrings(ctx.prefix(), nestedField.getName());
             unwrappedType = convertRequired(nestedField.getType());
-            argName = processField(queryBody, queryHeader, params, ctx, numArgs, unwrappedType,
-                argName, nestedField.getName(), nestedField.getDescription());
+            argName =
+                processField(
+                    queryBody,
+                    queryHeader,
+                    params,
+                    ctx,
+                    numArgs,
+                    unwrappedType,
+                    argName,
+                    nestedField.getName(),
+                    nestedField.getDescription());
             String typeString = printFieldType(nestedField);
             queryHeader.append(argName).append(": ").append(typeString);
             numArgs++;
@@ -363,8 +412,17 @@ public class GraphQLSchemaConverter {
           queryBody.append(" }");
         } else {
           String argName = combineStrings(ctx.prefix(), arg.getName());
-          argName = processField(queryBody, queryHeader, params, ctx, numArgs, unwrappedType, argName,
-              arg.getName(), arg.getDescription());
+          argName =
+              processField(
+                  queryBody,
+                  queryHeader,
+                  params,
+                  ctx,
+                  numArgs,
+                  unwrappedType,
+                  argName,
+                  arg.getName(),
+                  arg.getDescription());
           String typeString = printArgumentType(arg);
           queryHeader.append(argName).append(": ").append(typeString);
           numArgs++;
@@ -379,23 +437,36 @@ public class GraphQLSchemaConverter {
       queryBody.append(" {\n");
       boolean atLeastOneField = false;
       for (GraphQLFieldDefinition nestedField : objectType.getFieldDefinitions()) {
-        boolean success = visit(nestedField, queryBody, queryHeader, params,
-            ctx.nested(nestedField.getName(), objectType, numArgs));
+        boolean success =
+            visit(
+                nestedField,
+                queryBody,
+                queryHeader,
+                params,
+                ctx.nested(nestedField.getName(), objectType, numArgs));
         atLeastOneField |= success;
       }
-      ErrorHandling.checkArgument(atLeastOneField, "Expected at least on field on path: {}", ctx.opName());
+      ErrorHandling.checkArgument(
+          atLeastOneField, "Expected at least on field on path: {}", ctx.opName());
       queryBody.append("}");
     }
     queryBody.append("\n");
     return true;
   }
 
-  private String processField(StringBuilder queryBody, StringBuilder queryHeader, Parameters params,
-      Context ctx, int numArgs, UnwrappedType unwrappedType, String argName, String originalName,
+  private String processField(
+      StringBuilder queryBody,
+      StringBuilder queryHeader,
+      Parameters params,
+      Context ctx,
+      int numArgs,
+      UnwrappedType unwrappedType,
+      String argName,
+      String originalName,
       String description) {
     Argument argDef = convert(unwrappedType.type());
     argDef.setDescription(description);
-    if (numArgs>0) queryBody.append(", ");
+    if (numArgs > 0) queryBody.append(", ");
     if (ctx.numArgs() + numArgs > 0) queryHeader.append(", ");
     if (unwrappedType.required()) params.getRequired().add(argName);
     params.getProperties().put(argName, argDef);
@@ -405,34 +476,37 @@ public class GraphQLSchemaConverter {
   }
 
   private String printFieldType(GraphQLInputObjectField field) {
-    GraphQLInputObjectType type = GraphQLInputObjectType.newInputObject()
-        .name("DummyType")
-        .field(field)
-        .build();
+    GraphQLInputObjectType type =
+        GraphQLInputObjectType.newInputObject().name("DummyType").field(field).build();
     // Print argument as part of a dummy field in a dummy schema
     String output = schemaPrinter.print(type);
     return extractTypeFromDummy(output, field.getName());
   }
 
   private String printArgumentType(GraphQLArgument argument) {
-    GraphQLArgument argumentWithoutDescription = argument.transform(builder -> builder.description(null));
-    GraphQLObjectType type = GraphQLObjectType.newObject()
-        .name("DummyType")
-        .field(field -> field
-            .name("dummyField")
-            .type(GraphQLString)
-            .argument(argumentWithoutDescription)
-        )
-        .build();
+    GraphQLArgument argumentWithoutDescription =
+        argument.transform(builder -> builder.description(null));
+    GraphQLObjectType type =
+        GraphQLObjectType.newObject()
+            .name("DummyType")
+            .field(
+                field ->
+                    field
+                        .name("dummyField")
+                        .type(GraphQLString)
+                        .argument(argumentWithoutDescription))
+            .build();
     // Print argument as part of a dummy field in a dummy schema
     String output = schemaPrinter.print(type);
     return extractTypeFromDummy(output, argument.getName());
   }
 
   private String extractTypeFromDummy(String output, String fieldName) {
-    //Remove comments
-    output = Arrays.stream(output.split("\n"))
-        .filter(line -> !line.trim().startsWith("#")).collect(Collectors.joining("\n"));
+    // Remove comments
+    output =
+        Arrays.stream(output.split("\n"))
+            .filter(line -> !line.trim().startsWith("#"))
+            .collect(Collectors.joining("\n"));
     Pattern pattern = Pattern.compile(fieldName + "\\s*:\\s*([^)}]+)");
     // Print argument as part of a dummy field in a dummy schema
     Matcher matcher = pattern.matcher(output);
@@ -440,15 +514,13 @@ public class GraphQLSchemaConverter {
     return matcher.group(1).trim();
   }
 
-
   private static GraphQLOutputType unwrapType(GraphQLOutputType type) {
     if (type instanceof GraphQLList) {
       return unwrapType((GraphQLOutputType) ((GraphQLList) type).getWrappedType());
     } else if (type instanceof GraphQLNonNull) {
-      return unwrapType((GraphQLOutputType)((GraphQLNonNull) type).getWrappedType());
+      return unwrapType((GraphQLOutputType) ((GraphQLNonNull) type).getWrappedType());
     } else {
       return type;
     }
   }
-
 }

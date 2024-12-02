@@ -6,8 +6,8 @@ import com.datasqrl.ai.acorn.AcornChatMemory;
 import com.datasqrl.ai.acorn.AcornChatMemoryAdvisor;
 import com.datasqrl.ai.acorn.AcornSpringAIUtils;
 import com.datasqrl.ai.acorn.GraphQLTools;
-import com.datasqrl.ai.api.GraphQLQuery;
 import com.datasqrl.ai.acorn.SpringGraphQLExecutor;
+import com.datasqrl.ai.api.GraphQLQuery;
 import com.datasqrl.ai.chat.APIChatPersistence;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
 import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
@@ -43,11 +43,14 @@ class Config {
 
   @Bean
   ChatClient chatClient(ChatClient.Builder builder) {
-    GraphQLTools toolConverter = new GraphQLTools(new GraphQLSchemaConverter(
-        loadResourceFileAsString("tools/schema.graphqls"),
-        GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("Internal")).build(),
-        new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid"))
-    ));
+    GraphQLTools toolConverter =
+        new GraphQLTools(
+            new GraphQLSchemaConverter(
+                loadResourceFileAsString("tools/schema.graphqls"),
+                GraphQLSchemaConverterConfig.builder()
+                    .operationFilter(ignorePrefix("Internal"))
+                    .build(),
+                new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid"))));
 
     return builder
         .defaultAdvisors(new AcornChatMemoryAdvisor(getMemory(), 10))
@@ -60,11 +63,12 @@ class Config {
   }
 
   private AcornChatMemory getMemory() {
-    APIChatPersistence chatPersistence = new APIChatPersistence(getAPIExecutor(),
-        new GraphQLQuery(loadResourceFileAsString("memory/saveMessage.graphql")),
-        new GraphQLQuery(loadResourceFileAsString("memory/getMessage.graphql")),
-        Set.of(USERID_KEY));
+    APIChatPersistence chatPersistence =
+        new APIChatPersistence(
+            getAPIExecutor(),
+            new GraphQLQuery(loadResourceFileAsString("memory/saveMessage.graphql")),
+            new GraphQLQuery(loadResourceFileAsString("memory/getMessage.graphql")),
+            Set.of(USERID_KEY));
     return new AcornChatMemory(chatPersistence, AcornChatMemory.DEFAULT_CONTEXT_PREFIX);
   }
-
 }

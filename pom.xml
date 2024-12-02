@@ -6,17 +6,6 @@
   <artifactId>acorn</artifactId>
   <version>0.1.1-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <modules>
-    <module>acorn-core</module>
-    <module>acorn-graphql</module>
-    <module>acorn-openai</module>
-    <module>acorn-bedrock</module>
-    <module>acorn-groq</module>
-    <module>acorn-vertex</module>
-    <module>acorn-docker</module>
-    <module>acorn-cloud</module>
-    <module>acorn-springai</module>
-  </modules>
 
   <description>Acorn Parent POM</description>
   <url>https://www.datasqrl.com/</url>
@@ -34,11 +23,22 @@
       <url>https://github.com/henneberger</url>
     </developer>
   </developers>
+  <modules>
+    <module>acorn-core</module>
+    <module>acorn-graphql</module>
+    <module>acorn-openai</module>
+    <module>acorn-bedrock</module>
+    <module>acorn-groq</module>
+    <module>acorn-vertex</module>
+    <module>acorn-docker</module>
+    <module>acorn-cloud</module>
+    <module>acorn-springai</module>
+  </modules>
   <scm>
     <connection>scm:git:https://github.com/DataSQRL/Acorn.git</connection>
-    <url>https://github.com/DataSQRL/Acorn</url>
     <developerConnection>scm:git:https://github.com/DataSQRL/Acorn.git</developerConnection>
     <tag>HEAD</tag>
+    <url>https://github.com/DataSQRL/Acorn</url>
   </scm>
 
   <properties>
@@ -61,7 +61,7 @@
     <spring.version>6.1.11</spring.version>
     <h2.version>2.2.224</h2.version>
     <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
-    <surefire-plugin.version>3.5.0</surefire-plugin.version>
+    <surefire-plugin.version>3.5.2</surefire-plugin.version>
   </properties>
 
   <dependencies>
@@ -86,18 +86,51 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>0.4.0</version>
+          <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central</publishingServerId>
+            <tokenAuth>true</tokenAuth>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.6.3</version>
+          <configuration>
+            <failOnError>false</failOnError>
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+              <phase>package</phase>
+              <configuration>
+                <show>public</show>
+                <failOnError>false</failOnError>
+                <detectOfflineLinks>false</detectOfflineLinks>
+                <doclint>all,-missing</doclint>
+                <nohelp>true</nohelp>
+                <excludePackageNames>*.internal.*,testutil,demo</excludePackageNames>
+                <quiet>true</quiet>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.6.2</version>
-          </dependency>
-        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -116,11 +149,11 @@
         <version>1.5</version>
         <executions>
           <execution>
-            <phase>deploy</phase>
             <id>sign-artifacts</id>
             <goals>
               <goal>sign</goal>
             </goals>
+            <phase>deploy</phase>
           </execution>
         </executions>
       </plugin>
@@ -146,8 +179,7 @@
           </execution>
         </executions>
       </plugin>
-      
-      
+
       <!-- linter for pom files, will be applied automatically on every build -->
       <plugin>
         <groupId>com.github.ekryd.sortpom</groupId>
@@ -239,46 +271,6 @@
         </executions>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.sonatype.central</groupId>
-          <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.4.0</version>
-          <extensions>true</extensions>
-          <configuration>
-            <publishingServerId>central</publishingServerId>
-            <tokenAuth>true</tokenAuth>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.3</version>
-          <executions>
-            <execution>
-              <id>attach-javadocs</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-              <phase>package</phase>
-              <configuration>
-                <show>public</show>
-                <failOnError>false</failOnError>
-                <detectOfflineLinks>false</detectOfflineLinks>
-                <doclint>all,-missing</doclint>
-                <nohelp>true</nohelp>
-                <excludePackageNames>*.internal.*,testutil,demo</excludePackageNames>
-                <quiet>true</quiet>
-              </configuration>
-            </execution>
-          </executions>
-          <configuration>
-            <failOnError>false</failOnError>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <profiles>
@@ -328,5 +320,5 @@
       </properties>
 
     </profile>
-    </profiles>
+  </profiles>
 </project>
