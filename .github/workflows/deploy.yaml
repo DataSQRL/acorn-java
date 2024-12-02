@@ -1,0 +1,42 @@
+name: Deploy to Production
+
+on:
+  workflow_run:
+    workflows: 
+      - "Build and push Image"
+      - "Build and test with maven"
+    types:
+      - completed
+
+  pull_request:
+    types: [labeled]
+
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'deploy')) }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configure AWS credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      run: |
+        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        aws configure set default.region us-east-1
+
+    - name: Log in to AWS EKS
+      run: aws eks update-kubeconfig --name datasqrl-cloud
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl set image --namespace cloud-compilation deployment/cloud-compilation app=286928876767.dkr.ecr.us-east-1.amazonaws.com/datasqrl-cloud-compilation/cloud-compilation:${{ github.sha }}
+
+    - name: Wait deployment rollout
+      run: |
+        kubectl rollout status --namespace cloud-compilation deployment/cloud-compilation
