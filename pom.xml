@@ -4,7 +4,7 @@
 
   <groupId>com.datasqrl</groupId>
   <artifactId>acorn</artifactId>
-  <version>0.1.1-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <description>Acorn Parent POM</description>
@@ -24,14 +24,7 @@
     </developer>
   </developers>
   <modules>
-    <module>acorn-core</module>
     <module>acorn-graphql</module>
-    <module>acorn-openai</module>
-    <module>acorn-bedrock</module>
-    <module>acorn-groq</module>
-    <module>acorn-vertex</module>
-    <module>acorn-docker</module>
-    <module>acorn-cloud</module>
     <module>acorn-springai</module>
   </modules>
   <scm>
