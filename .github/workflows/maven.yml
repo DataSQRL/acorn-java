@@ -31,7 +31,7 @@ jobs:
     - name: Download dependencies
       run: |
         set -x
-        ./mvnw -B quarkus:go-offline dependency:go-offline de.qaware.maven:go-offline-maven-plugin:1.2.8:resolve-dependencies
+        ./mvnw -B dependency:go-offline de.qaware.maven:go-offline-maven-plugin:1.2.8:resolve-dependencies
 
     - name: Build with Maven
       run: ./mvnw -B test -Pci
