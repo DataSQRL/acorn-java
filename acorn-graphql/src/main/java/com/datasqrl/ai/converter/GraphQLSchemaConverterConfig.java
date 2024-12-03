@@ -1,6 +1,7 @@
 package com.datasqrl.ai.converter;
 
 import graphql.language.OperationDefinition.Operation;
+import java.util.Arrays;
 import java.util.function.BiPredicate;
 import lombok.Builder;
 import lombok.Value;
@@ -16,8 +17,11 @@ public class GraphQLSchemaConverterConfig {
 
   @Builder.Default int maxDepth = 3;
 
-  public static BiPredicate<Operation, String> ignorePrefix(String prefix) {
-    final String prefixLower = prefix.trim().toLowerCase();
-    return (op, name) -> !name.trim().toLowerCase().startsWith(prefixLower);
+  public static BiPredicate<Operation, String> ignorePrefix(String... prefixes) {
+    final String[] prefixesLower =
+        Arrays.stream(prefixes).map(String::trim).map(String::toLowerCase).toArray(String[]::new);
+    return (op, name) ->
+        Arrays.stream(prefixesLower)
+            .anyMatch(prefixLower -> !name.trim().toLowerCase().startsWith(prefixLower));
   }
 }
