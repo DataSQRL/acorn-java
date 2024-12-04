@@ -30,7 +30,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.datasqrl</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>acorn-graphql</artifactId>
       <version>${project.version}</version>
     </dependency>

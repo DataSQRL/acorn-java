@@ -9,6 +9,7 @@
 
   <description>Acorn Parent POM</description>
   <url>https://www.datasqrl.com/</url>
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -16,23 +17,43 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <developers>
     <developer>
       <name>Daniel Henneberger</name>
       <email>daniel@datasqrl.com</email>
       <url>https://github.com/henneberger</url>
     </developer>
+    <developer>
+      <name>Matthias Broecheler</name>
+      <email>matthias@datasqrl.com</email>
+      <url>https://github.com/mbroecheler</url>
+    </developer>
+    <developer>
+      <name>Marvin Froeder</name>
+      <email>marvin@datasqrl.com</email>
+      <url>https://github.com/velo</url>
+    </developer>
   </developers>
+
   <modules>
     <module>acorn-graphql</module>
     <module>acorn-springai</module>
   </modules>
+
   <scm>
     <connection>scm:git:https://github.com/DataSQRL/Acorn.git</connection>
     <developerConnection>scm:git:https://github.com/DataSQRL/Acorn.git</developerConnection>
     <tag>HEAD</tag>
     <url>https://github.com/DataSQRL/Acorn</url>
   </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/DataSQRL/acorn-java</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <properties>
     <gcf.skipInstallHooks>true</gcf.skipInstallHooks>
@@ -81,16 +102,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.sonatype.central</groupId>
-          <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.4.0</version>
-          <extensions>true</extensions>
-          <configuration>
-            <publishingServerId>central</publishingServerId>
-            <tokenAuth>true</tokenAuth>
-          </configuration>
-        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
