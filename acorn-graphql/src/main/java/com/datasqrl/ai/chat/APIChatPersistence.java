@@ -8,11 +8,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import graphql.com.google.common.collect.Iterators;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -78,7 +82,10 @@ public class APIChatPersistence implements ChatPersistence {
 
     String response = apiExecutor.executeQuery(getMessages, variables);
     JsonNode root = mapper.readTree(response);
-    JsonNode messages = root.path("data").path("messages");
+    JsonNode messages =
+        Optional.ofNullable(Iterators.getOnlyElement(root.path("data").fields(), null))
+            .map(Map.Entry::getValue)
+            .orElse(MissingNode.getInstance());
 
     List<ChatMessage> chatMessages = new ArrayList<>();
     for (JsonNode node : messages) {
