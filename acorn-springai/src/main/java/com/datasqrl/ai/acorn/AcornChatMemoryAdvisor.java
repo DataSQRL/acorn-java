@@ -50,8 +50,7 @@ public class AcornChatMemoryAdvisor extends AbstractChatMemoryAdvisor<AcornChatM
     List<Message> memoryMessages = getChatMemoryStore().get(adviseContext, chatMemoryRetrieveSize);
     List<Message> advisedMessages = new ArrayList(request.messages());
     advisedMessages.addAll(memoryMessages);
-    AdvisedRequest advisedRequest =
-        AdvisedRequest.from(request).withMessages(advisedMessages).build();
+    AdvisedRequest advisedRequest = AdvisedRequest.from(request).messages(advisedMessages).build();
     UserMessage userMessage = new UserMessage(request.userText(), request.media());
     getChatMemoryStore().add(List.of(userMessage), adviseContext);
     return advisedRequest;
