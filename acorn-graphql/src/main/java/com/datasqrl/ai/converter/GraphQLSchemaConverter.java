@@ -91,6 +91,16 @@ public class GraphQLSchemaConverter {
   SchemaPrinter schemaPrinter =
       new SchemaPrinter(SchemaPrinter.Options.defaultOptions().descriptionsAsHashComments(true));
 
+
+  /**
+   * Converts all operations defined within a given GraphQL operation definition string
+   * to an equivalent list of API Functions.
+   *
+   * @param operationDefinition a string defining GraphQL operations
+   * @return a list of API Functions equivalent to the provided GraphQL operations
+   * @throws IllegalArgumentException if operation definition contains no definitions
+   *                                  or if an unexpected definition type is provided
+   */
   public List<APIFunction> convertOperations(String operationDefinition) {
     Parser parser = new Parser();
     Document document = parser.parseDocument(operationDefinition);
@@ -160,6 +170,13 @@ public class GraphQLSchemaConverter {
     return comments.stream().map(Comment::getContent).collect(Collectors.joining(" "));
   }
 
+
+  /**
+   * Converts a given GraphQL operation definition into a FunctionDefinition.
+   *
+   * @param node the OperationDefinition to be converted
+   * @return a FunctionDefinition that corresponds to the provided OperationDefinition
+   */
   public FunctionDefinition convertOperationDefinition(OperationDefinition node) {
     Operation op = node.getOperation();
     ErrorHandling.checkArgument(
@@ -194,6 +211,18 @@ public class GraphQLSchemaConverter {
 
   private record OperationField(Operation op, GraphQLFieldDefinition fieldDefinition) {}
 
+
+  /**
+   * Converts the whole GraphQL schema into a list of {@link APIFunction} instances.
+   *
+   * <p>This method will take the schema associated with this converter instance and convert
+   * every query and mutation in the schema into an equivalent {@link APIFunction}. The {@link APIFunction}
+   * instances are the ones that can be used by other parts of the system, acting as an equivalent
+   * representation of the original GraphQL operations.</p>
+   *
+   * @return List of {@link APIFunction} instances corresponding to all the queries and mutations
+   *         in the GraphQL schema.
+   */
   public List<APIFunction> convertSchema() {
     List<APIFunction> functions = new ArrayList<>();
 
@@ -247,7 +276,7 @@ public class GraphQLSchemaConverter {
     return argument;
   }
 
-  public static List<GraphQLScalarType> getExtendedScalars() {
+  private static List<GraphQLScalarType> getExtendedScalars() {
     List<GraphQLScalarType> scalars = new ArrayList<>();
 
     Field[] fields = ExtendedScalars.class.getFields();
@@ -279,12 +308,6 @@ public class GraphQLSchemaConverter {
     }
   }
 
-  private static String path2String(List<GraphQLObjectType> path) {
-    return "["
-        + path.stream().map(GraphQLObjectType::getName).collect(Collectors.joining(","))
-        + "]";
-  }
-
   private static FunctionDefinition initializeFunctionDefinition(String name, String description) {
     FunctionDefinition funcDef = new FunctionDefinition();
     Parameters params = new Parameters();
@@ -297,7 +320,7 @@ public class GraphQLSchemaConverter {
     return funcDef;
   }
 
-  public APIFunction convert(Operation operationType, GraphQLFieldDefinition fieldDef) {
+  private APIFunction convert(Operation operationType, GraphQLFieldDefinition fieldDef) {
     FunctionDefinition funcDef =
         initializeFunctionDefinition(fieldDef.getName(), fieldDef.getDescription());
     Parameters params = funcDef.getParameters();

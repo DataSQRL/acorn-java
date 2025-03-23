@@ -18,6 +18,9 @@ import lombok.Value;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.model.function.FunctionCallback;
 
+/**
+ * Creates Spring AI's {@link FunctionCallback} from Acorn's {@link APIFunction}
+ */
 @Value
 public class GraphQLTools {
 

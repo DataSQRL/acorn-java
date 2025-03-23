@@ -19,6 +19,9 @@ import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 
+/**
+ * Implements Spring AI's {@link ChatMemory} using Acorn's {@link APIChatPersistence}.
+ */
 @Value
 public class AcornChatMemory implements ChatMemory {
 
@@ -61,6 +64,16 @@ public class AcornChatMemory implements ChatMemory {
     return Map.of(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId);
   }
 
+
+  /**
+   * Converts the given advisor context map to a Context object by first filtering
+   * it based on the prefix, then ensuring that all required keys are present in the context.
+   * The resulting Context object represents the essential context for our ChatMemory management.
+   *
+   * @param advisorContext The initial context map.
+   * @return A Context object built from the given map.
+   * @throws IllegalArgumentException if a required key is not found in the advisorContext.
+   */
   private Context toContext(Map<String, Object> advisorContext) {
     Map<String, Object> filteredContext = new HashMap<>();
     if (contextPrefix != null) {

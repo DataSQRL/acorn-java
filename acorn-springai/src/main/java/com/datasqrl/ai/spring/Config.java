@@ -20,6 +20,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+/**
+ * An example configuration for loading the GraphQL schema and message storage and retrieval
+ * queries to use Acorn with Chat persistence.
+ *
+ * Uses `customerid` as the default context key.
+ */
 @Configuration
 class Config {
 
@@ -51,7 +57,7 @@ class Config {
                     .operationFilter(ignorePrefix("Internal"))
                     .build(),
                 new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid"))));
-
+    //Builds a chat client using Acorn's GraphQL API as tools and chat persistence
     return builder
         .defaultAdvisors(new AcornChatMemoryAdvisor(getMemory(), 10))
         .defaultFunctions(toolConverter.getSchemaTools())

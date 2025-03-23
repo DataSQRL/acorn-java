@@ -17,6 +17,14 @@ public class FunctionUtil {
     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mapper.valueToTree(tools));
   }
 
+  /**
+   * Adds/overwrites the context fields on the message with the provided context.
+   * @param arguments
+   * @param contextKeys
+   * @param context
+   * @param mapper
+   * @return
+   */
   public static JsonNode addOrOverrideContext(
       JsonNode arguments,
       @NonNull Set<String> contextKeys,
