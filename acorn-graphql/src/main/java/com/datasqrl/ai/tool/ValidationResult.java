@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 /**
  * The result of a function argument evaluation.
+ *
  * @param errorType
  * @param errorMessage
  */

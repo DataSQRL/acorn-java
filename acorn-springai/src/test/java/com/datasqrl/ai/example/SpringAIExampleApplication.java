@@ -1,12 +1,12 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringAITestApplication {
+public class SpringAIExampleApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(SpringAITestApplication.class, args);
+    SpringApplication.run(SpringAIExampleApplication.class, args);
   }
 }

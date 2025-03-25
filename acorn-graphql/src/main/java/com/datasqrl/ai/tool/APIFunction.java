@@ -15,9 +15,9 @@ import lombok.NonNull;
 import lombok.Value;
 
 /**
- * Represents an API function or tool that. It contains the {@link FunctionDefinition} that
- * is passed to the LLM as a tool and the {@link APIQuery} that is executed via the
- * {@link APIQueryExecutor} to invoke this function/tool.
+ * Represents an API function or tool that. It contains the {@link FunctionDefinition} that is
+ * passed to the LLM as a tool and the {@link APIQuery} that is executed via the {@link
+ * APIQueryExecutor} to invoke this function/tool.
  */
 @Value
 public class APIFunction {
@@ -59,8 +59,8 @@ public class APIFunction {
   }
 
   /**
-   * Removes the context keys from the {@link FunctionDefinition}
-   * to be passed to the LLM as tooling.
+   * Removes the context keys from the {@link FunctionDefinition} to be passed to the LLM as
+   * tooling.
    *
    * @return LLM tool
    */
@@ -92,6 +92,7 @@ public class APIFunction {
 
   /**
    * Validate the arguments for this function/tool.
+   *
    * @param arguments
    * @return
    */

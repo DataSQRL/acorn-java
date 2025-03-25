@@ -1,4 +1,4 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.example;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

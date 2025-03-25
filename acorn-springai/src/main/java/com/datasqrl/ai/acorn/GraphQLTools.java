@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 import lombok.Value;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.model.function.FunctionCallback;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.definition.ToolDefinition;
 
-/**
- * Creates Spring AI's {@link FunctionCallback} from Acorn's {@link APIFunction}
- */
+/** Creates Spring AI's {@link FunctionCallback} from Acorn's {@link APIFunction} */
 @Value
 public class GraphQLTools {
 
@@ -30,30 +30,30 @@ public class GraphQLTools {
     this.graphQLConverter = graphQLConverter;
   }
 
-  public FunctionCallback[] getSchemaTools() {
+  public ToolCallback[] getSchemaTools() {
     return from(graphQLConverter.convertSchema());
   }
 
-  public FunctionCallback[] getOperationTools(String operationDefinitions) {
+  public ToolCallback[] getOperationTools(String operationDefinitions) {
     return from(graphQLConverter.convertOperations(operationDefinitions));
   }
 
-  public static FunctionCallback[] from(Collection<APIFunction>... functions) {
+  public static ToolCallback[] from(Collection<APIFunction>... functions) {
     return Arrays.stream(functions)
         .flatMap(Collection::stream)
         .map(GraphQLTools::from)
-        .toArray(FunctionCallback[]::new);
+        .toArray(ToolCallback[]::new);
   }
 
-  public static FunctionCallback[] from(APIFunction... functions) {
-    return Arrays.stream(functions).map(GraphQLTools::from).toArray(FunctionCallback[]::new);
+  public static ToolCallback[] from(APIFunction... functions) {
+    return Arrays.stream(functions).map(GraphQLTools::from).toArray(ToolCallback[]::new);
   }
 
-  public static FunctionCallback from(APIFunction function) {
+  public static ToolCallback from(APIFunction function) {
     FunctionDefinition funcDef = function.getModelFunction();
     String inputSchema =
         toJsonString(funcDef.getParameters(), function.getApiExecutor().getObjectMapper());
-    return new FunctionCallback() {
+    return new ToolCallback() {
       @Override
       public String getName() {
         return funcDef.getName();
@@ -82,6 +82,12 @@ public class GraphQLTools {
         } catch (IOException e) { // This must be an operational exception, hence escalate
           throw new RuntimeException(e);
         }
+      }
+
+      @Override
+      public ToolDefinition getToolDefinition() {
+        // TODO Auto-generated method stub
+        return null;
       }
     };
   }

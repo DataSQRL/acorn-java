@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 
-/**
- * Interface for saving and retrieving messages against a GraphQL API
- */
+/** Interface for saving and retrieving messages against a GraphQL API */
 public interface ChatPersistence {
 
   ChatPersistence NONE =
@@ -32,7 +30,8 @@ public interface ChatPersistence {
    * Saves the given message to the API
    *
    * @param message the generic message object that is serialized with Jackson
-   * @param context the sensitive context of the message. The context can contains user, session, and other information
+   * @param context the sensitive context of the message. The context can contains user, session,
+   *     and other information
    * @return
    */
   public CompletableFuture<String> saveChatMessage(

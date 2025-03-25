@@ -1,4 +1,4 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.example;
 
 import java.util.Map;
 import org.springframework.ai.chat.client.ChatClient;
@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * An example endpoint for message completion
- */
+/** An example endpoint for message completion */
 @RestController
 class AIController {
 

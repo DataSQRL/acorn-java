@@ -15,15 +15,11 @@ import org.springframework.ai.chat.model.MessageAggregator;
 import reactor.core.publisher.Flux;
 
 /**
- * Implements a custom MessageChatMemoryAdvisor for {@link AcornChatMemory} because
- * the default Spring AI implementation makes limiting assumptions about how the context
- * can be passed in.
+ * Implements a custom MessageChatMemoryAdvisor for {@link AcornChatMemory} because the default
+ * Spring AI implementation makes limiting assumptions about how the context can be passed in.
  *
- * This class only meaningfully changes the {@link #observeAfter(AdvisedResponse)} and
- * {@link #before(AdvisedRequest)} methods to get the full advise context and pass it through.
- *
- *
- *
+ * <p>This class only meaningfully changes the {@link #observeAfter(AdvisedResponse)} and {@link
+ * #before(AdvisedRequest)} methods to get the full advise context and pass it through.
  */
 public class AcornChatMemoryAdvisor extends AbstractChatMemoryAdvisor<AcornChatMemory> {
 

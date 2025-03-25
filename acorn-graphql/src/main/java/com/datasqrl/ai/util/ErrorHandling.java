@@ -1,8 +1,6 @@
 package com.datasqrl.ai.util;
 
-/**
- * Utility methods for error handling
- */
+/** Utility methods for error handling */
 public class ErrorHandling {
 
   public static void checkArgument(boolean condition, String message, Object... args) {

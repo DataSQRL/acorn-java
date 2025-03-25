@@ -1,4 +1,4 @@
-package com.datasqrl.ai.spring;
+package com.datasqrl.ai.example;
 
 import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
 
@@ -15,16 +15,17 @@ import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 /**
- * An example configuration for loading the GraphQL schema and message storage and retrieval
- * queries to use Acorn with Chat persistence.
+ * An example configuration for loading the GraphQL schema and message storage and retrieval queries
+ * to use Acorn with Chat persistence.
  *
- * Uses `customerid` as the default context key.
+ * <p>Uses `customerid` as the default context key.
  */
 @Configuration
 class Config {
@@ -48,7 +49,7 @@ class Config {
   }
 
   @Bean
-  ChatClient chatClient(ChatClient.Builder builder) {
+  ChatClient chatClient(ChatModel model) {
     GraphQLTools toolConverter =
         new GraphQLTools(
             new GraphQLSchemaConverter(
@@ -57,10 +58,11 @@ class Config {
                     .operationFilter(ignorePrefix("Internal"))
                     .build(),
                 new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid"))));
-    //Builds a chat client using Acorn's GraphQL API as tools and chat persistence
+    // Builds a chat client using Acorn's GraphQL API as tools and chat persistence
+    ChatClient.Builder builder = ChatClient.builder(model);
     return builder
         .defaultAdvisors(new AcornChatMemoryAdvisor(getMemory(), 10))
-        .defaultFunctions(toolConverter.getSchemaTools())
+        .defaultTools(toolConverter.getSchemaTools())
         .build();
   }
 
