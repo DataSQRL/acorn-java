@@ -40,7 +40,9 @@ public class FunctionUtil {
     // Add context
     for (String contextKey : contextKeys) {
       Object value = context.get(contextKey);
-      if (value == null) throw new IllegalArgumentException("Missing context field: " + contextKey);
+      if (value == null) {
+        throw new IllegalArgumentException("Missing context field: " + contextKey);
+      }
       copyJsonNode.putPOJO(contextKey, value);
     }
     return copyJsonNode;
