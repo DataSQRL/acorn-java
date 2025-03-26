@@ -7,13 +7,18 @@ import com.datasqrl.ai.acorn.AcornChatMemoryAdvisor;
 import com.datasqrl.ai.acorn.AcornSpringAIUtils;
 import com.datasqrl.ai.acorn.GraphQLTools;
 import com.datasqrl.ai.acorn.SpringGraphQLExecutor;
-import com.datasqrl.ai.api.GraphQLQuery;
-import com.datasqrl.ai.chat.APIChatPersistence;
+import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
 import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
 import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
+import com.datasqrl.ai.tool.Context;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import lombok.NonNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.context.annotation.Bean;
@@ -25,19 +30,14 @@ import org.springframework.core.io.ResourceLoader;
  * An example configuration for loading the GraphQL schema and message storage and retrieval queries
  * to use Acorn with Chat persistence.
  *
- * <p>Uses `customerid` as the default context key.
+ * <p>Uses `id` as the default context key.
  */
 @Configuration
 class Config {
-
-  public static final String USERID_KEY = "chat_memory_conversation_userid";
-
   private final ResourceLoader resourceLoader;
-  private final ServerProperties properties;
 
-  public Config(ResourceLoader resourceLoader, ServerProperties properties) {
+  public Config(ResourceLoader resourceLoader) {
     this.resourceLoader = resourceLoader;
-    this.properties = properties;
   }
 
   private Resource getResourceFromClasspath(String path) {
@@ -49,33 +49,49 @@ class Config {
   }
 
   @Bean
-  ChatClient chatClient(ChatModel model, AcornChatMemory acornChatMemory) {
+  ChatClient chatClient(ChatModel model, AcornChatMemory chatMemory) {
     GraphQLTools toolConverter =
         new GraphQLTools(
             new GraphQLSchemaConverter(
-                loadResourceFileAsString("tools/schema.graphqls"),
+                loadResourceFileAsString("schema.graphql"),
                 GraphQLSchemaConverterConfig.builder()
                     .operationFilter(ignorePrefix("Internal"))
                     .build(),
-                new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid"))));
+                new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("id"))));
     // Builds a chat client using Acorn's GraphQL API as tools and chat persistence
-    ChatClient.Builder builder = ChatClient.builder(model);
-    return builder
-        .defaultAdvisors(new AcornChatMemoryAdvisor(acornChatMemory, 10))
+    return ChatClient.builder(model)
+        .defaultAdvisors(new AcornChatMemoryAdvisor(chatMemory, 10))
         .defaultTools(toolConverter.getSchemaTools())
         .build();
   }
 
   private SpringGraphQLExecutor getAPIExecutor() {
-    return new SpringGraphQLExecutor(properties.getBackendUrl(), Optional.empty());
+    return new SpringGraphQLExecutor("https://rickandmortyapi.com/graphql", Optional.empty());
   }
 
   @Bean
-  APIChatPersistence chatPersistence() {
-    return new APIChatPersistence(
-        getAPIExecutor(),
-        new GraphQLQuery(loadResourceFileAsString("memory/saveMessage.graphql")),
-        new GraphQLQuery(loadResourceFileAsString("memory/getMessage.graphql")),
-        Set.of(USERID_KEY));
+  ChatPersistence inMemoryChat() {
+    var messages = new ArrayList<Object>();
+    return new ChatPersistence() {
+
+      @Override
+      public CompletableFuture<String> saveChatMessage(
+          @NonNull Object message, @NonNull Context context) {
+        messages.add(message);
+        return CompletableFuture.completedFuture("OK");
+      }
+
+      @Override
+      public <ChatMessage> List<ChatMessage> getChatMessages(
+          @NonNull Context context, int limit, @NonNull Class<ChatMessage> clazz)
+          throws IOException {
+        return messages.stream().map(clazz::cast).toList();
+      }
+
+      @Override
+      public Set<String> getGetMessageContextKeys() {
+        return Set.of("id");
+      }
+    };
   }
 }

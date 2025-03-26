@@ -8,40 +8,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class CreditcardRewardsExampleApplicationTest {
+class RickAndMortyExampleApplicationTest {
 
   @LocalServerPort private int port;
 
-  // Start the Docker container with the specified image and configuration
-  @SuppressWarnings("resource")
-  @Container
-  private static final GenericContainer<?> cloudBackendContainer =
-      new GenericContainer<>(DockerImageName.parse("datasqrl/examples:finance"))
-          .withEnv("KAFKA_BOOTSTRAP_SERVER", "localhost:9092")
-          .withEnv("KAFKA_CONSUMER_GROUP", "cloud-backend1")
-          .withEnv("TZ", "UTC")
-          .withExposedPorts(8888, 8081, 9092)
-          .withCommand("run -c package-rewards-local.json");
-
-  @DynamicPropertySource
-  static void overrideProperties(DynamicPropertyRegistry registry) {
-    registry.add(
-        "config.backendURL",
-        () -> "http://localhost:" + cloudBackendContainer.getMappedPort(8888) + "/graphql");
-  }
-
   @Test
-  void givenCustomerId_whenQueryingLLM_thenGetAnswer() throws Exception {
+  void givenId_whenQueryingLLM_thenGetAnswer() throws Exception {
     String url = "http://localhost:" + port + "/agent/1";
     RestTemplate restTemplate = new RestTemplate();
 

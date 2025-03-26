@@ -13,6 +13,7 @@
 
   <modules>
     <module>acorn-sqrl-creditcard-rewards</module>
+    <module>acorn-example-rick-and-morty</module>
   </modules>
 
 </project>

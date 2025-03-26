@@ -6,9 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @EnableAcorn
-public class CreditcardRewardsExampleApplication {
+public class RickAndMortyExampleApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(CreditcardRewardsExampleApplication.class, args);
+    SpringApplication.run(RickAndMortyExampleApplication.class, args);
   }
 }

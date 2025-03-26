@@ -1,6 +1,7 @@
 package com.datasqrl.ai.acorn;
 
 import com.datasqrl.ai.chat.APIChatPersistence;
+import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.util.ErrorHandling;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -18,15 +19,18 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 /** Implements Spring AI's {@link ChatMemory} using Acorn's {@link APIChatPersistence}. */
-@Value
+@Service
+@RequiredArgsConstructor
 public class AcornChatMemory implements ChatMemory {
 
-  public static final String DEFAULT_CONTEXT_PREFIX = "chat_memory_conversation_";
+  private final ChatPersistence chatPersistence;
 
-  APIChatPersistence chatPersistence;
-  String contextPrefix;
+  @Value("${acorn.chat.context.prefix:chat_memory_conversation_}")
+  private final String contextPrefix;
 
   @Override
   public void add(String conversationId, List<Message> messages) {

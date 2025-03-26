@@ -3,6 +3,7 @@ package com.datasqrl.ai.chat;
 import com.datasqrl.ai.tool.Context;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 
@@ -23,6 +24,11 @@ public interface ChatPersistence {
             @NonNull Context context, int limit, @NonNull Class<ChatMessage> clazz)
             throws IOException {
           return List.of();
+        }
+
+        @Override
+        public Set<String> getGetMessageContextKeys() {
+          return Set.of();
         }
       };
 
@@ -49,4 +55,6 @@ public interface ChatPersistence {
    */
   public <ChatMessage> List<ChatMessage> getChatMessages(
       @NonNull Context context, int limit, @NonNull Class<ChatMessage> clazz) throws IOException;
+
+  Set<String> getGetMessageContextKeys();
 }
