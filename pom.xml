@@ -39,6 +39,7 @@
   <modules>
     <module>acorn-graphql</module>
     <module>acorn-springai</module>
+    <module>acorn-examples</module>
   </modules>
 
   <scm>
@@ -71,7 +72,8 @@
     <graphql-java.version>22.0</graphql-java.version>
     <reflections.version>0.10.2</reflections.version>
     <okhttp.version>4.12.0</okhttp.version>
-    <spring.version>6.1.11</spring.version>
+    <spring.version>3.3.0</spring.version>
+    <networknt.version>1.4.0</networknt.version>
     <h2.version>2.2.224</h2.version>
     <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
     <surefire-plugin.version>3.5.2</surefire-plugin.version>
@@ -90,6 +92,13 @@
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
         <version>5.12.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>1.0.0-M6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -115,24 +124,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.junit.vintage</groupId>
       <artifactId>junit-vintage-engine</artifactId>
       <scope>test</scope>
     </dependency>
-
     <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

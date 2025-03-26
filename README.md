@@ -67,6 +67,10 @@ The base implementation of Acorn can be found in the [acorn-graphql](acorn-graph
 
 The [acorn-springai](acorn-springai) module integrates Acorn with Spring AI. See the [documentation](acorn-springai/README.md) of that module for more information.
 
+## Examples
+
+There are a few examples available under [acorn-examples](acorn-examples) module.
+
 ## Contributing
 
 We love contributions. Open an issue if you encounter a bug or have a feature request. See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
