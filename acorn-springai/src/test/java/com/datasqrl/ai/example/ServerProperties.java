@@ -9,5 +9,5 @@ import org.springframework.stereotype.Component;
 @Data
 public class ServerProperties {
 
-  private String backendUrl;
+  private String backendUrl = "http://localhost:8888/graphql";
 }

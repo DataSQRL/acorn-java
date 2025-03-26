@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringAIExampleApplication {
+public class CreditcardRewardsExampleApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(SpringAIExampleApplication.class, args);
+    SpringApplication.run(CreditcardRewardsExampleApplication.class, args);
   }
 }

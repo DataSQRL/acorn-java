@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -38,6 +39,10 @@ public class GraphQLTools {
     return from(graphQLConverter.convertOperations(operationDefinitions));
   }
 
+  public static ToolCallback[] from(List<APIFunction> functions) {
+    return functions.stream().map(GraphQLTools::from).toArray(ToolCallback[]::new);
+  }
+
   public static ToolCallback[] from(Collection<APIFunction>... functions) {
     return Arrays.stream(functions)
         .flatMap(Collection::stream)
@@ -54,20 +59,6 @@ public class GraphQLTools {
     String inputSchema =
         toJsonString(funcDef.getParameters(), function.getApiExecutor().getObjectMapper());
     return new ToolCallback() {
-      @Override
-      public String getName() {
-        return funcDef.getName();
-      }
-
-      @Override
-      public String getDescription() {
-        return funcDef.getDescription();
-      }
-
-      @Override
-      public String getInputTypeSchema() {
-        return inputSchema;
-      }
 
       @Override
       public String call(String functionInput) {
@@ -86,8 +77,11 @@ public class GraphQLTools {
 
       @Override
       public ToolDefinition getToolDefinition() {
-        // TODO Auto-generated method stub
-        return null;
+        return ToolDefinition.builder()
+            .name(funcDef.getName())
+            .description(funcDef.getDescription())
+            .inputSchema(inputSchema)
+            .build();
       }
     };
   }
