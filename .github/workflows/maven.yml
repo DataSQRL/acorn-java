@@ -26,6 +26,8 @@ jobs:
         ./mvnw -B org.apache.maven.plugins:maven-dependency-plugin:3.8.1:go-offline de.qaware.maven:go-offline-maven-plugin:1.2.8:resolve-dependencies
 
     - name: Build with Maven
+      env:
+        SPRING_AI_OPENAI_API_KEY: ${{ secrets.SPRING_AI_OPENAI_API_KEY }}
       run: ./mvnw -B test -Pci
 
     - name: Import GPG Key
