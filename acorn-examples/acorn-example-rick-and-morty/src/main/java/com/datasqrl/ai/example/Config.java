@@ -2,10 +2,7 @@ package com.datasqrl.ai.example;
 
 import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
 
-import com.datasqrl.ai.acorn.AcornChatMemory;
-import com.datasqrl.ai.acorn.AcornChatMemoryAdvisor;
 import com.datasqrl.ai.acorn.AcornSpringAIUtils;
-import com.datasqrl.ai.acorn.GraphQLTools;
 import com.datasqrl.ai.acorn.SpringGraphQLExecutor;
 import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
@@ -19,8 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -49,20 +44,11 @@ class Config {
   }
 
   @Bean
-  ChatClient chatClient(ChatModel model, AcornChatMemory chatMemory) {
-    GraphQLTools toolConverter =
-        new GraphQLTools(
-            new GraphQLSchemaConverter(
-                loadResourceFileAsString("schema.graphql"),
-                GraphQLSchemaConverterConfig.builder()
-                    .operationFilter(ignorePrefix("Internal"))
-                    .build(),
-                new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("id"))));
-    // Builds a chat client using Acorn's GraphQL API as tools and chat persistence
-    return ChatClient.builder(model)
-        .defaultAdvisors(new AcornChatMemoryAdvisor(chatMemory, 10))
-        .defaultTools(toolConverter.getSchemaTools())
-        .build();
+  GraphQLSchemaConverter graphQLSchemaConverter() {
+    return new GraphQLSchemaConverter(
+        loadResourceFileAsString("schema.graphql"),
+        GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("Internal")).build(),
+        new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("id")));
   }
 
   private SpringGraphQLExecutor getAPIExecutor() {
