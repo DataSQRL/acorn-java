@@ -40,6 +40,7 @@
     <module>acorn-graphql</module>
     <module>acorn-springai</module>
     <module>acorn-examples</module>
+    <module>coverage</module>
   </modules>
 
   <scm>
@@ -307,6 +308,26 @@
                 <source>target/generated-test-sources/test-annotations</source>
               </sources>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.11</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
