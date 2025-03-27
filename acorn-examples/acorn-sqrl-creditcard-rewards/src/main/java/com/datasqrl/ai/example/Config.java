@@ -9,7 +9,6 @@ import com.datasqrl.ai.chat.APIChatPersistence;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
 import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
 import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
-import java.util.Optional;
 import java.util.Set;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,11 +27,9 @@ class Config {
   public static final String USERID_KEY = "chat_memory_conversation_userid";
 
   private final ResourceLoader resourceLoader;
-  private final ServerProperties properties;
 
-  public Config(ResourceLoader resourceLoader, ServerProperties properties) {
+  public Config(ResourceLoader resourceLoader) {
     this.resourceLoader = resourceLoader;
-    this.properties = properties;
   }
 
   private Resource getResourceFromClasspath(String path) {
@@ -44,21 +41,17 @@ class Config {
   }
 
   @Bean
-  GraphQLSchemaConverter graphQLSchemaConverter() {
+  GraphQLSchemaConverter graphQLSchemaConverter(SpringGraphQLExecutor apiExecutor) {
     return new GraphQLSchemaConverter(
         loadResourceFileAsString("tools/schema.graphqls"),
         GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("Internal")).build(),
-        new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("customerid")));
-  }
-
-  private SpringGraphQLExecutor getAPIExecutor() {
-    return new SpringGraphQLExecutor(properties.getBackendUrl(), Optional.empty());
+        new StandardAPIFunctionFactory(apiExecutor, Set.of("customerid")));
   }
 
   @Bean
-  APIChatPersistence chatPersistence() {
+  APIChatPersistence chatPersistence(SpringGraphQLExecutor apiExecutor) {
     return new APIChatPersistence(
-        getAPIExecutor(),
+        apiExecutor,
         new GraphQLQuery(loadResourceFileAsString("memory/saveMessage.graphql")),
         new GraphQLQuery(loadResourceFileAsString("memory/getMessage.graphql")),
         Set.of(USERID_KEY));

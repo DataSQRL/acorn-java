@@ -12,7 +12,6 @@ import com.datasqrl.ai.tool.Context;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -44,15 +43,11 @@ class Config {
   }
 
   @Bean
-  GraphQLSchemaConverter graphQLSchemaConverter() {
+  GraphQLSchemaConverter graphQLSchemaConverter(SpringGraphQLExecutor apiExecutor) {
     return new GraphQLSchemaConverter(
         loadResourceFileAsString("schema.graphql"),
         GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("Internal")).build(),
-        new StandardAPIFunctionFactory(getAPIExecutor(), Set.of("id")));
-  }
-
-  private SpringGraphQLExecutor getAPIExecutor() {
-    return new SpringGraphQLExecutor("https://rickandmortyapi.com/graphql", Optional.empty());
+        new StandardAPIFunctionFactory(apiExecutor, Set.of("id")));
   }
 
   @Bean

@@ -36,7 +36,7 @@ class CreditcardRewardsExampleApplicationTest {
   @DynamicPropertySource
   static void overrideProperties(DynamicPropertyRegistry registry) {
     registry.add(
-        "config.backendURL",
+        "config.backend-url",
         () -> "http://localhost:" + cloudBackendContainer.getMappedPort(8888) + "/graphql");
   }
 
