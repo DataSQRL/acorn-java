@@ -83,7 +83,7 @@ public class AcornChatMemory implements ChatMemory {
           .forEach(entry -> filteredContext.put(entry.getKey(), entry.getValue()));
     }
     // Add required keys, make sure they exist
-    for (String requiredKey : chatPersistence.getGetMessageContextKeys()) {
+    for (String requiredKey : chatPersistence.getMessageContextKeys()) {
       Object value = advisorContext.get(requiredKey);
       ErrorHandling.checkArgument(
           value != null, "Advisor context does not contain required key: %s", requiredKey);

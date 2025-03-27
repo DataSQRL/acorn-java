@@ -30,7 +30,7 @@ public class APIChatPersistence implements ChatPersistence {
   APIQueryExecutor apiExecutor;
   APIQuery saveMessage;
   APIQuery getMessages;
-  Set<String> getMessageContextKeys;
+  Set<String> messageContextKeys;
 
   /**
    * Saves the generic chat message with the configured context asynchronously (i.e. does not block)
@@ -76,7 +76,7 @@ public class APIChatPersistence implements ChatPersistence {
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put("limit", limit);
     JsonNode variables =
-        FunctionUtil.addOrOverrideContext(arguments, getMessageContextKeys, context, mapper);
+        FunctionUtil.addOrOverrideContext(arguments, messageContextKeys, context, mapper);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 

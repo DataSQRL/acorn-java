@@ -27,7 +27,7 @@ public interface ChatPersistence {
         }
 
         @Override
-        public Set<String> getGetMessageContextKeys() {
+        public Set<String> getMessageContextKeys() {
           return Set.of();
         }
       };
@@ -56,5 +56,5 @@ public interface ChatPersistence {
   public <ChatMessage> List<ChatMessage> getChatMessages(
       @NonNull Context context, int limit, @NonNull Class<ChatMessage> clazz) throws IOException;
 
-  Set<String> getGetMessageContextKeys();
+  Set<String> getMessageContextKeys();
 }

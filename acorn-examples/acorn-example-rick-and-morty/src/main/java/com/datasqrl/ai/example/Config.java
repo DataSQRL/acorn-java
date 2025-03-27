@@ -97,7 +97,7 @@ class Config {
       }
 
       @Override
-      public Set<String> getGetMessageContextKeys() {
+      public Set<String> getMessageContextKeys() {
         return Set.of();
       }
     };
