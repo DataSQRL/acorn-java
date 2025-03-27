@@ -3,7 +3,6 @@ package com.datasqrl.ai.example;
 import java.util.Map;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,19 +16,9 @@ class AIController {
     this.chatClient = chatClient;
   }
 
-  @GetMapping("/agent/{id}")
-  Map<String, String> completion(
-      @PathVariable("id") String id,
-      @RequestParam(value = "message", defaultValue = "What can you help me with?")
-          String message) {
-    return Map.of(
-        "completion",
-        chatClient
-            .prompt()
-            .advisors(advisor -> advisor.param("id", id))
-            .toolContext(Map.of("id", id))
-            .user(message)
-            .call()
-            .content());
+  @GetMapping("/agent")
+  Map<String, String> prompt(
+      @RequestParam(value = "prompt", defaultValue = "What can you help me with?") String prompt) {
+    return Map.of("completion", chatClient.prompt().user(prompt).call().content());
   }
 }

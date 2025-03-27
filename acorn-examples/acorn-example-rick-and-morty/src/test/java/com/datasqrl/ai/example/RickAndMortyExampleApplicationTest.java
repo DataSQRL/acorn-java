@@ -17,10 +17,12 @@ class RickAndMortyExampleApplicationTest {
 
   @Test
   void givenId_whenQueryingLLM_thenGetAnswer() throws Exception {
-    String url = "http://localhost:" + port + "/agent/1";
+    String url =
+        "http://localhost:"
+            + port
+            + "/agent?prompt=List all characters who appeared in episode Pilot";
     RestTemplate restTemplate = new RestTemplate();
 
-    // Perform HTTP GET request to the /agent/1 endpoint
     ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
     // Assert that the status code is 200 OK
@@ -29,7 +31,7 @@ class RickAndMortyExampleApplicationTest {
     // Assert that the response body is not null and contains expected JSON content
     String responseBody = response.getBody();
 
-    assertThat(responseBody).isNotNull();
+    assertThat(responseBody).isNotNull().contains("Rick Sanchez");
 
     var json = new ObjectMapper().readTree(responseBody);
     assertThat(json.has("completion")).as("JSON must contain a 'completion' field").isTrue();

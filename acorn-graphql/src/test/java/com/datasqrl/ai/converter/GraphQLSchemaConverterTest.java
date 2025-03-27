@@ -2,6 +2,8 @@ package com.datasqrl.ai.converter;
 
 import static com.datasqrl.ai.converter.GraphQLSchemaConverterConfig.ignorePrefix;
 import static graphql.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,6 +12,8 @@ import com.datasqrl.ai.api.APIQueryExecutor;
 import com.datasqrl.ai.api.MockAPIExecutor;
 import com.datasqrl.ai.tool.APIFunction;
 import com.datasqrl.ai.tool.FunctionUtil;
+import graphql.parser.Parser;
+import graphql.schema.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,8 +110,47 @@ public class GraphQLSchemaConverterTest {
   }
 
   public static void snapshot(List<APIFunction> functions, String testName) {
+    for (APIFunction apiFunction : functions) {
+      // make sure ALL queries have a good syntax
+      var query = apiFunction.getApiQuery().query();
+      assertDoesNotThrow(
+          () -> {
+            Parser.parse(query);
+          });
+    }
     TestUtil.snapshotTest(
         convertToJsonDefault(functions),
         Path.of("src", "test", "resources", "snapshot", testName + ".json"));
+  }
+
+  @Test
+  void givenComplexFieldDefinition_whenVisiting_thenGenerateValidQuery() {
+    GraphQLSchemaConverter converter =
+        new GraphQLSchemaConverter(
+            TestUtil.getResourcesFileAsString("graphql/rick_morty-schema.graphqls"),
+            GraphQLSchemaConverterConfig.builder()
+                .operationFilter(ignorePrefix("internal"))
+                .build(),
+            new StandardAPIFunctionFactory(apiExecutor, Set.of()));
+
+    List<APIFunction> functions = converter.convertSchema();
+    assertEquals(9, functions.size());
+    // Test context key handling
+    APIFunction episodes =
+        functions.stream()
+            .filter(f -> f.getFunction().getName().equalsIgnoreCase("episodes"))
+            .findFirst()
+            .get();
+    assertThat(episodes.getFunction().getParameters().getProperties())
+        .containsKeys("name", "episode", "page");
+
+    var query = episodes.getApiQuery().query();
+    assertDoesNotThrow(
+        () -> {
+          Parser.parse(query);
+        });
+    assertFalse(
+        episodes.getModelFunction().getParameters().getProperties().containsKey("customerid"));
+    snapshot(functions, "rick-morty");
   }
 }

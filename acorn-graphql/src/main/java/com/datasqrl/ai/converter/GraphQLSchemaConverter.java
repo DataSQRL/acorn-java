@@ -407,11 +407,16 @@ public class GraphQLSchemaConverter {
     int numArgs = 0;
     if (!fieldDef.getArguments().isEmpty()) {
       queryBody.append("(");
-      for (GraphQLArgument arg : fieldDef.getArguments()) {
+      for (Iterator<GraphQLArgument> args = fieldDef.getArguments().iterator(); args.hasNext(); ) {
+        GraphQLArgument arg = args.next();
+
         UnwrappedType unwrappedType = convertRequired(arg.getType());
         if (unwrappedType.type() instanceof GraphQLInputObjectType inputType) {
           queryBody.append(arg.getName()).append(": { ");
-          for (GraphQLInputObjectField nestedField : inputType.getFieldDefinitions()) {
+          for (Iterator<GraphQLInputObjectField> nestedFields =
+                  inputType.getFieldDefinitions().iterator();
+              nestedFields.hasNext(); ) {
+            GraphQLInputObjectField nestedField = nestedFields.next();
             String argName = combineStrings(ctx.prefix(), nestedField.getName());
             unwrappedType = convertRequired(nestedField.getType());
             argName =
@@ -420,7 +425,6 @@ public class GraphQLSchemaConverter {
                     queryHeader,
                     params,
                     ctx,
-                    numArgs,
                     unwrappedType,
                     argName,
                     nestedField.getName(),
@@ -428,6 +432,9 @@ public class GraphQLSchemaConverter {
             String typeString = printFieldType(nestedField);
             queryHeader.append(argName).append(": ").append(typeString);
             numArgs++;
+            if (nestedFields.hasNext()) {
+              queryBody.append(", ");
+            }
           }
           queryBody.append(" }");
         } else {
@@ -438,7 +445,6 @@ public class GraphQLSchemaConverter {
                   queryHeader,
                   params,
                   ctx,
-                  numArgs,
                   unwrappedType,
                   argName,
                   arg.getName(),
@@ -446,6 +452,10 @@ public class GraphQLSchemaConverter {
           String typeString = printArgumentType(arg);
           queryHeader.append(argName).append(": ").append(typeString);
           numArgs++;
+        }
+
+        if (args.hasNext()) {
+          queryBody.append(", ");
         }
       }
       queryBody.append(")");
@@ -479,15 +489,12 @@ public class GraphQLSchemaConverter {
       StringBuilder queryHeader,
       Parameters params,
       Context ctx,
-      int numArgs,
       UnwrappedType unwrappedType,
       String argName,
       String originalName,
       String description) {
     Argument argDef = convert(unwrappedType.type());
     argDef.setDescription(description);
-    if (numArgs > 0) queryBody.append(", ");
-    if (ctx.numArgs() + numArgs > 0) queryHeader.append(", ");
     if (unwrappedType.required()) params.getRequired().add(argName);
     params.getProperties().put(argName, argDef);
     argName = "$" + argName;

@@ -9,9 +9,19 @@ import com.datasqrl.ai.converter.GraphQLSchemaConverter;
 import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
 import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
 import com.datasqrl.ai.tool.Context;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.MissingNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import graphql.com.google.common.collect.Iterators;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
@@ -47,11 +57,11 @@ class Config {
     return new GraphQLSchemaConverter(
         loadResourceFileAsString("schema.graphql"),
         GraphQLSchemaConverterConfig.builder().operationFilter(ignorePrefix("Internal")).build(),
-        new StandardAPIFunctionFactory(apiExecutor, Set.of("id")));
+        new StandardAPIFunctionFactory(apiExecutor, Set.of()));
   }
 
   @Bean
-  ChatPersistence inMemoryChat() {
+  ChatPersistence inMemoryChat(ObjectMapper mapper) {
     var messages = new ArrayList<Object>();
     return new ChatPersistence() {
 
@@ -66,12 +76,29 @@ class Config {
       public <ChatMessage> List<ChatMessage> getChatMessages(
           @NonNull Context context, int limit, @NonNull Class<ChatMessage> clazz)
           throws IOException {
-        return messages.stream().map(clazz::cast).toList();
+        ObjectNode arguments = mapper.createObjectNode();
+        arguments.put("limit", limit);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        JsonNode root = mapper.valueToTree(messages);
+        JsonNode messages =
+            Optional.ofNullable(Iterators.getOnlyElement(root.path("data").fields(), null))
+                .map(Map.Entry::getValue)
+                .orElse(MissingNode.getInstance());
+
+        List<ChatMessage> chatMessages = new ArrayList<>();
+        for (JsonNode node : messages) {
+          ChatMessage chatMessage = mapper.treeToValue(node, clazz);
+          chatMessages.add(chatMessage);
+        }
+        Collections.reverse(chatMessages); // newest should be last
+        return chatMessages;
       }
 
       @Override
       public Set<String> getGetMessageContextKeys() {
-        return Set.of("id");
+        return Set.of();
       }
     };
   }
