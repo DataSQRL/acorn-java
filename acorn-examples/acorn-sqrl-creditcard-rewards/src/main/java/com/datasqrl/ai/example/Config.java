@@ -6,6 +6,7 @@ import com.datasqrl.ai.acorn.AcornSpringAIUtils;
 import com.datasqrl.ai.acorn.SpringGraphQLExecutor;
 import com.datasqrl.ai.api.GraphQLQuery;
 import com.datasqrl.ai.chat.APIChatPersistence;
+import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.converter.GraphQLSchemaConverter;
 import com.datasqrl.ai.converter.GraphQLSchemaConverterConfig;
 import com.datasqrl.ai.converter.StandardAPIFunctionFactory;
@@ -49,7 +50,7 @@ class Config {
   }
 
   @Bean
-  APIChatPersistence chatPersistence(SpringGraphQLExecutor apiExecutor) {
+  ChatPersistence chatPersistence(SpringGraphQLExecutor apiExecutor) {
     return new APIChatPersistence(
         apiExecutor,
         new GraphQLQuery(loadResourceFileAsString("memory/saveMessage.graphql")),
