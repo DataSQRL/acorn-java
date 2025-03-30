@@ -1,7 +1,7 @@
 package com.datasqrl.ai;
 
 import static java.nio.file.StandardOpenOption.CREATE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.datasqrl.ai.util.ErrorHandling;
@@ -28,8 +28,7 @@ public class TestUtil {
   @SneakyThrows
   public static void snapshotTest(String result, Path pathToExpected) {
     if (Files.isRegularFile(pathToExpected)) {
-      String expected = Files.readString(pathToExpected, StandardCharsets.UTF_8);
-      assertEquals(expected, result);
+      assertThat(pathToExpected).hasContent(result);
     } else {
       Files.writeString(pathToExpected, result, StandardCharsets.UTF_8, CREATE);
       fail("Created snapshot: " + pathToExpected.toAbsolutePath());

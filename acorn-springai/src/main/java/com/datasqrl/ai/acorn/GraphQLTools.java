@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -17,7 +18,11 @@ import java.util.stream.Collectors;
 import lombok.Value;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.model.function.FunctionCallback;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.definition.ToolDefinition;
+import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
+/** Creates Spring AI's {@link FunctionCallback} from Acorn's {@link APIFunction} */
 @Value
 public class GraphQLTools {
 
@@ -27,58 +32,59 @@ public class GraphQLTools {
     this.graphQLConverter = graphQLConverter;
   }
 
-  public FunctionCallback[] getSchemaTools() {
+  public ToolCallback[] getSchemaTools() {
     return from(graphQLConverter.convertSchema());
   }
 
-  public FunctionCallback[] getOperationTools(String operationDefinitions) {
+  public ToolCallback[] getOperationTools(String operationDefinitions) {
     return from(graphQLConverter.convertOperations(operationDefinitions));
   }
 
-  public static FunctionCallback[] from(Collection<APIFunction>... functions) {
+  public static ToolCallback[] from(List<APIFunction> functions) {
+    return functions.stream().map(GraphQLTools::from).toArray(ToolCallback[]::new);
+  }
+
+  public static ToolCallback[] from(Collection<APIFunction>... functions) {
     return Arrays.stream(functions)
         .flatMap(Collection::stream)
         .map(GraphQLTools::from)
-        .toArray(FunctionCallback[]::new);
+        .toArray(ToolCallback[]::new);
   }
 
-  public static FunctionCallback[] from(APIFunction... functions) {
-    return Arrays.stream(functions).map(GraphQLTools::from).toArray(FunctionCallback[]::new);
+  public static ToolCallback[] from(APIFunction... functions) {
+    return Arrays.stream(functions).map(GraphQLTools::from).toArray(ToolCallback[]::new);
   }
 
-  public static FunctionCallback from(APIFunction function) {
+  public static ToolCallback from(APIFunction function) {
     FunctionDefinition funcDef = function.getModelFunction();
     String inputSchema =
         toJsonString(funcDef.getParameters(), function.getApiExecutor().getObjectMapper());
-    return new FunctionCallback() {
-      @Override
-      public String getName() {
-        return funcDef.getName();
-      }
-
-      @Override
-      public String getDescription() {
-        return funcDef.getDescription();
-      }
-
-      @Override
-      public String getInputTypeSchema() {
-        return inputSchema;
-      }
+    return new ToolCallback() {
 
       @Override
       public String call(String functionInput) {
-        return call(functionInput, null);
+        return call(functionInput, new ToolContext(Map.of()));
       }
 
       @Override
       public String call(String functionInput, ToolContext toolContext) {
-        Context ctx = toolContext == null ? Context.EMPTY : new ToolContextWrapper(toolContext);
+        Context ctx = new ToolContextWrapper(toolContext);
         try {
           return function.validateAndExecute(functionInput, ctx);
+        } catch (BadRequest e) {
+          return "Invalid graphql Query, got the following error: " + e.getMessage();
         } catch (IOException e) { // This must be an operational exception, hence escalate
           throw new RuntimeException(e);
         }
+      }
+
+      @Override
+      public ToolDefinition getToolDefinition() {
+        return ToolDefinition.builder()
+            .name(funcDef.getName())
+            .description(funcDef.getDescription())
+            .inputSchema(inputSchema)
+            .build();
       }
     };
   }

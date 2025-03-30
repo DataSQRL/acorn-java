@@ -22,7 +22,7 @@
   },
   "contextKeys" : [ ],
   "apiQuery" : {
-    "query" : "query SensorReading($sensorid: Int!, $limit: Int = 10, $offset: Int = 0) {\nSensorReading(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
+    "query" : "query SensorReading($sensorid: Int!$limit: Int = 10$offset: Int = 0) {\nSensorReading(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
   }
 }, {
   "function" : {
@@ -43,7 +43,7 @@
   },
   "contextKeys" : [ ],
   "apiQuery" : {
-    "query" : "query ReadingsAboveTemp($temp: Float!, $limit: Int = 10) {\nReadingsAboveTemp(temp: $temp, limit: $limit) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
+    "query" : "query ReadingsAboveTemp($temp: Float!$limit: Int = 10) {\nReadingsAboveTemp(temp: $temp, limit: $limit) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
   }
 }, {
   "function" : {
@@ -69,7 +69,7 @@
   },
   "contextKeys" : [ ],
   "apiQuery" : {
-    "query" : "query SensorMaxTempLastMinute($sensorid: Int, $limit: Int = 10, $offset: Int = 0) {\nSensorMaxTempLastMinute(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\nmaxTemp\nlast_updated\n}\n\n}"
+    "query" : "query SensorMaxTempLastMinute($sensorid: Int$limit: Int = 10$offset: Int = 0) {\nSensorMaxTempLastMinute(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\nmaxTemp\nlast_updated\n}\n\n}"
   }
 }, {
   "function" : {
@@ -95,7 +95,7 @@
   },
   "contextKeys" : [ ],
   "apiQuery" : {
-    "query" : "query SensorMaxTemp($sensorid: Int, $limit: Int = 10, $offset: Int = 0) {\nSensorMaxTemp(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\nmaxTemp\nlast_updated\n}\n\n}"
+    "query" : "query SensorMaxTemp($sensorid: Int$limit: Int = 10$offset: Int = 0) {\nSensorMaxTemp(sensorid: $sensorid, limit: $limit, offset: $offset) {\nsensorid\nmaxTemp\nlast_updated\n}\n\n}"
   }
 }, {
   "function" : {
@@ -115,7 +115,7 @@
   },
   "contextKeys" : [ ],
   "apiQuery" : {
-    "query" : "mutation AddReading($sensorid: Int!, $temperature: Float!) {\nAddReading(metric: { sensorid: $sensorid, temperature: $temperature }) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
+    "query" : "mutation AddReading($sensorid: Int!$temperature: Float!) {\nAddReading(metric: { sensorid: $sensorid, temperature: $temperature }) {\nsensorid\ntemperature\nevent_time\n}\n\n}"
   }
 }, {
   "function" : {

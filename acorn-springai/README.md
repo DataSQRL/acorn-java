@@ -1,8 +1,17 @@
 # Acorn with Spring AI 
 
-This project is an example implementation of how to use Acorn within the Spring AI framework with
-OpenAI as the model provider. The goal is to identify the right interface between acorn and spring-ai
-so we can make the integration easy.
+A Spring AI module that integrates Acorn with Spring AI for tooling and chat memory.
+It provides:
+- Converts GraphQL API into callback functions for LLM tooling
+- Implements ChatMemory against GraphQL API
+
+## Example Spring AI Application using Acorn
+
+### Ricky and Morty Chatbot
+
+TODO
+
+### Credit Card Agent
 
 The implementation expects that the DataSQRL rewards credit card example is running for information retrieval and message persistence.
 

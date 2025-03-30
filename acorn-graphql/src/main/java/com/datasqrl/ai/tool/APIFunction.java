@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.Value;
 
+/**
+ * Represents an API function or tool that. It contains the {@link FunctionDefinition} that is
+ * passed to the LLM as a tool and the {@link APIQuery} that is executed via the {@link
+ * APIQueryExecutor} to invoke this function/tool.
+ */
 @Value
 public class APIFunction {
 
@@ -53,6 +58,12 @@ public class APIFunction {
     return function.getName();
   }
 
+  /**
+   * Removes the context keys from the {@link FunctionDefinition} to be passed to the LLM as
+   * tooling.
+   *
+   * @return LLM tool
+   */
   @JsonIgnore
   public FunctionDefinition getModelFunction() {
     Predicate<String> fieldFilter = getFieldFilter(contextKeys);
@@ -79,6 +90,12 @@ public class APIFunction {
     return field -> !contextFilter.contains(field.toLowerCase());
   }
 
+  /**
+   * Validate the arguments for this function/tool.
+   *
+   * @param arguments
+   * @return
+   */
   public ValidationResult validate(JsonNode arguments) {
     return apiExecutor.validate(getModelFunction(), arguments);
   }

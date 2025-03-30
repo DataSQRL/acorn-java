@@ -1,6 +1,7 @@
 package com.datasqrl.ai.acorn;
 
 import com.datasqrl.ai.chat.APIChatPersistence;
+import com.datasqrl.ai.chat.ChatPersistence;
 import com.datasqrl.ai.tool.Context;
 import com.datasqrl.ai.tool.ContextImpl;
 import com.datasqrl.ai.util.ErrorHandling;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import lombok.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -18,14 +19,18 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-@Value
+/** Implements Spring AI's {@link ChatMemory} using Acorn's {@link APIChatPersistence}. */
+@Service
+@RequiredArgsConstructor
 public class AcornChatMemory implements ChatMemory {
 
-  public static final String DEFAULT_CONTEXT_PREFIX = "chat_memory_conversation_";
+  private final ChatPersistence chatPersistence;
 
-  APIChatPersistence chatPersistence;
-  String contextPrefix;
+  @Value("${acorn.chat.context.prefix:chat_memory_conversation_}")
+  private final String contextPrefix;
 
   @Override
   public void add(String conversationId, List<Message> messages) {
@@ -61,6 +66,15 @@ public class AcornChatMemory implements ChatMemory {
     return Map.of(AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId);
   }
 
+  /**
+   * Converts the given advisor context map to a Context object by first filtering it based on the
+   * prefix, then ensuring that all required keys are present in the context. The resulting Context
+   * object represents the essential context for our ChatMemory management.
+   *
+   * @param advisorContext The initial context map.
+   * @return A Context object built from the given map.
+   * @throws IllegalArgumentException if a required key is not found in the advisorContext.
+   */
   private Context toContext(Map<String, Object> advisorContext) {
     Map<String, Object> filteredContext = new HashMap<>();
     if (contextPrefix != null) {
@@ -69,7 +83,7 @@ public class AcornChatMemory implements ChatMemory {
           .forEach(entry -> filteredContext.put(entry.getKey(), entry.getValue()));
     }
     // Add required keys, make sure they exist
-    for (String requiredKey : chatPersistence.getGetMessageContextKeys()) {
+    for (String requiredKey : chatPersistence.getMessageContextKeys()) {
       Object value = advisorContext.get(requiredKey);
       ErrorHandling.checkArgument(
           value != null, "Advisor context does not contain required key: %s", requiredKey);

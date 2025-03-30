@@ -39,6 +39,8 @@
   <modules>
     <module>acorn-graphql</module>
     <module>acorn-springai</module>
+    <module>acorn-examples</module>
+    <module>coverage</module>
   </modules>
 
   <scm>
@@ -61,7 +63,6 @@
 
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-    <junit.jupiter.version>5.8.2</junit.jupiter.version>
     <lombok.version>1.18.34</lombok.version>
     <jackson.version>2.17.1</jackson.version>
     <djl.version>0.29.0</djl.version>
@@ -72,11 +73,38 @@
     <graphql-java.version>22.0</graphql-java.version>
     <reflections.version>0.10.2</reflections.version>
     <okhttp.version>4.12.0</okhttp.version>
-    <spring.version>6.1.11</spring.version>
+    <spring.version>3.3.0</spring.version>
+    <networknt.version>1.4.0</networknt.version>
     <h2.version>2.2.224</h2.version>
     <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
     <surefire-plugin.version>3.5.2</surefire-plugin.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>1.20.6</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.12.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>1.0.0-M6</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!-- General Dependencies -->
@@ -92,9 +120,18 @@
       <version>${slf4j.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -271,6 +308,26 @@
                 <source>target/generated-test-sources/test-annotations</source>
               </sources>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.11</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
