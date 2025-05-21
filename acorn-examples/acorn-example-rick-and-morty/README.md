@@ -49,7 +49,7 @@ mvn spring-boot:run
 Then query the API:
 
 ```
-curl --location 'http://localhost:8080/agent?message=List all characters who appeared in episode Pilot'
+curl --location 'http://localhost:8080/agent?prompt=List all characters who appeared in episode Pilot'
 ```
 
 
