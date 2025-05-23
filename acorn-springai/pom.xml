@@ -12,9 +12,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>acorn-graphql</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.datasqrl</groupId>
+      <artifactId>sqrl-graphql</artifactId>
+      <version>${sqrl.version}</version>
     </dependency>
 
     <dependency>
