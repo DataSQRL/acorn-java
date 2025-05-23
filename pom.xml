@@ -75,6 +75,8 @@
     <spring.version>3.3.0</spring.version>
     <networknt.version>1.4.0</networknt.version>
     <h2.version>2.2.224</h2.version>
+    <sqrl.version>0.7.0-SNAPSHOT</sqrl.version>
+
     <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
     <surefire-plugin.version>3.5.2</surefire-plugin.version>
   </properties>
