@@ -37,7 +37,6 @@
   </developers>
 
   <modules>
-    <module>acorn-graphql</module>
     <module>acorn-springai</module>
     <module>acorn-examples</module>
     <module>coverage</module>
